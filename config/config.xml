@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>Chocolat Panel</Name>
+    <Version>1.0.0</Version>
+    <Title>Chocolat Panel Installer</Title>
+    <Publisher>InoSystemes</Publisher>
+    <StartMenuDir>Chocolat Panel</StartMenuDir>
+    <TargetDir>@ApplicationsDir@/Chocolat Panel</TargetDir>
+    <MaintenanceToolName>ChocolatMaintenanceTool</MaintenanceToolName>
+    <AllowNonAsciiCharacters>true</AllowNonAsciiCharacters>
+    <AllowSpaceInPath>true</AllowSpaceInPath>
+    <WizardStyle>Modern</WizardStyle>
+    <InstallerWindowIcon>chocolatPanel</InstallerWindowIcon>
+    <InstallerApplicationIcon>chocolatPanel</InstallerApplicationIcon>
+    <Logo>logo.png</Logo>
+    <RunProgram>@TargetDir@/chocolat.bat</RunProgram>
+    <RunProgramDescription>Lancer Chocolat Panel</RunProgramDescription>
+</Installer>
