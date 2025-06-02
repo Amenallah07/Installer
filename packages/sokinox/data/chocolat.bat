@@ -12,20 +12,15 @@ REM Vérifie si Python est installé
 python --version >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo Python n'est pas installé ou n'est pas dans le PATH.
-    echo L'interface du simulateur ne sera pas disponible.
-    
-    REM Lance directement le simulateur et l'application sans l'interface graphique
-    start "" "scripts\startsimulator.bat"
-) else (
-    REM Lance l'interface Python du simulateur
-    start "" python "scripts\Simulator.py"
-    
-    REM Attendre que l'utilisateur configure le simulateur
-    timeout /t 2 /nobreak >nul
-    
-    REM Lance le simulateur et l'application
-    start "" "scripts\startsimulator.bat"
-)
+    echo Le système d'authentification ne peut pas fonctionner.
+    echo.
+    echo Installation de Python requise pour continuer.
+    pause
+    exit /b 1
+) 
+
+REM Lance la page de login
+python "scripts\Login.py"
 
 echo L'application Chocolat a été lancée.
 echo Vous pouvez fermer cette fenêtre.
