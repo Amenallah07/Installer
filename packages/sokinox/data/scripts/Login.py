@@ -31,7 +31,7 @@ class ChocolatLogin:
         self.profile_var = StringVar(value="Standard")
         
         # Configuration repos
-        self.config_dir = os.path.expanduser("~/Ona/var/persistent")
+        self.config_dir = r"C:\Ona\var\persistent"
         if not os.path.exists(self.config_dir):
             os.makedirs(self.config_dir)
             
@@ -219,7 +219,8 @@ class ChocolatLogin:
             else:  # Expert
                 simulator_script = os.path.join(script_dir, "SimulatorExpert.py")
 
-            self.kill_python_script(os.path.basename(simulator_script))
+            # Kill existing apps
+            self.kill_all_apps()
 
             if os.path.exists(simulator_script):
                 subprocess.Popen([sys.executable, simulator_script])
@@ -238,19 +239,10 @@ class ChocolatLogin:
         CREATE_NEW_CONSOLE = 0x00000010
 
         try:
-            if version == "v2.0":
-                # Default version
-                simulator_exe = os.path.join(bin_dir, "simulator.exe")
-                panel_exe = os.path.join(bin_dir, "ChocolatPanel_release.exe")
-            else:
-                simulator_exe = os.path.join(bin_dir, f"simulator-{version}.exe")
-                panel_exe = os.path.join(bin_dir, f"chocolatPanel-{version}.exe")
+            simulator_exe = os.path.join(bin_dir, f"simulator-{version}.exe")
+            panel_exe = os.path.join(bin_dir, f"chocolatPanel-{version}_release.exe")
 
             launched = False
-
-            # Kill existing versions first
-            self.kill_existing_processes(["simulator.exe", "chocolatpanel_release.exe",
-                                          f"simulator-{version}.exe", f"chocolatpanel-{version}.exe"])
             
             if os.path.exists(simulator_exe):
                 subprocess.Popen([simulator_exe], creationflags=CREATE_NEW_CONSOLE)
@@ -270,23 +262,24 @@ class ChocolatLogin:
         except Exception as e:
             messagebox.showerror("Error", f"Executable launch error: {e}")
 
-    def exit_application(self):
-        """Terminate all launched processes and exit the app."""
-        import sys
-        import psutil
-
-        # Kill Python scripts
+    def kill_all_apps(self):
+        """Terminate all launched processes."""
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.kill_python_script(os.path.join(script_dir, "SimulatorStandard.py"))
         self.kill_python_script(os.path.join(script_dir, "SimulatorExpert.py"))
 
         # Kill all possible .exe variants
         self.kill_existing_processes([
-            "simulator.exe", "chocolatpanel_release.exe",
-            "simulator-v1.6.1.exe", "chocolatpanel-v1.6.1.exe",
-            "simulator-v1.6.3.exe", "chocolatpanel-v1.6.3.exe",
-            "simulator-v2.0.exe", "chocolatpanel-v2.0.exe"
+            "simulator-v1.6.1.exe", "chocolatpanel-v1.6.1_release.exe",
+            "simulator-v1.6.3.exe", "chocolatpanel-v1.6.3_release.exe",
+            "simulator-v2.0.exe", "chocolatpanel-v2.0_release.exe"
         ])
+
+    def exit_application(self):
+        """Terminate all launched processes and exit the app."""
+        import sys
+
+        self.kill_all_apps()
 
         # Close the login/config window
         self.root.destroy()

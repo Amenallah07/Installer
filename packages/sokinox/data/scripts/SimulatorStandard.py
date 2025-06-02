@@ -1,40 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Windows version du script Simulator.py original
-# Compatible avec Python 2.7 et 3.x
-#
-# Utilisation: python Simulator.py
+# SimulatorStandard.py - Standard version of Chocolat Panel Simulator
+# Compatible with Python 2.7 et 3.x
 #
 
 import sys
 import os
 import tkinter as tk
 from tkinter import *
+from tkinter import ttk
 from ConfigManager import get_config
 
 def onClearGUIStatus():
-    path = os.path.expanduser("~/Ona/var/persistent/SystemStatus.conf")
+    path = r"C:\Ona\var\persistent\SystemStatus.conf"
     if os.path.exists(path):
         os.remove(path)
 
 # Création des dossiers requis
-config_dir = os.path.expanduser("~/Ona/var/persistent")
+config_dir = path = r"C:\Ona\var\persistent"
 if not os.path.exists(config_dir):
     os.makedirs(config_dir)
 
 # Chargement de la configuration
 config = get_config()
 
-#
-# Cette classe a un label et un champ d'entrée.
-#
 class labeledEntry:
-    def __init__(self, parent, row_, col_, legend, initialValue):
+    def __init__(self, parent, row_, col_, legend, initialValue, width=10):
         self.var = StringVar()
-        LBB1 = Label(parent, text=legend).grid(row=row_)
-        BB1 = Entry(parent, width=10, textvariable = self.var)
-        BB1.grid(row=row_, column=1)
+        label = Label(parent, text=legend, bg='lightgrey', fg='black')
+        label.grid(row=row_, column=col_, sticky="w", padx=5, pady=2)
+        entry = Entry(parent, width=width, textvariable=self.var, bg='white', fg='black')
+        entry.grid(row=row_, column=col_+1, sticky="w", padx=5, pady=2)
         self.var.set(initialValue)
 
     def get(self):
@@ -44,134 +41,231 @@ class labeledEntry:
         file.write(self.var.get())
         file.write(" ")
 
-    def set(self,value):
+    def set(self, value):
         self.var.set(value)
 
-
-class bottleFrame:
-    
+class UserActionsFrame:
     def __init__(self, frame, row_, col_):
-        myFrame = LabelFrame(frame, text="Bottle Configuration")
-        myFrame.grid(row = row_, column = col_)
-
-        self.bb1 = labeledEntry(myFrame, 0, 0, "Bottle1 pressure", "500000")
-        self.bb2 = labeledEntry(myFrame, 1, 0, "Bottle2 pressure", "500000")
-        self.bb1c = labeledEntry(myFrame, 2, 0, "Bottle1 concentration", "450")
-        self.bb2c = labeledEntry(myFrame, 3, 0, "Bottle2 concentration", "450")
+        self.myFrame = LabelFrame(frame, text="User Actions", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
+        self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
         
+        # Mains Power
+        Label(self.myFrame, text="Mains Power:", bg='lightgrey', fg='black').grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        self.mains_power = BooleanVar()
+        self.mains_power.set(True)
+        self.mains_switch = Checkbutton(self.myFrame, text="ON/OFF", variable=self.mains_power, 
+                                       bg='lightgrey', fg='black', selectcolor='white')
+        self.mains_switch.grid(row=0, column=1, sticky="w", padx=5, pady=2)
+        
+        # Battery charge level
+        self.battery_level = labeledEntry(self.myFrame, 1, 0, "Battery charge level:", "95", 8)
+        
+        # Backup switch
+        Label(self.myFrame, text="Backup switch:", bg='lightgrey', fg='black').grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        self.backup_switch = BooleanVar()
+        self.backup_switch.set(False)
+        backup_cb = Checkbutton(self.myFrame, text="ON/OFF", variable=self.backup_switch, 
+                               bg='lightgrey', fg='black', selectcolor='white')
+        backup_cb.grid(row=2, column=1, sticky="w", padx=5, pady=2)
+        
+        # Backup O2 flow
+        self.backup_o2_flow = labeledEntry(self.myFrame, 3, 0, "Backup O2 flow L/min:", "5", 8)
 
     def putOnFile(self, file):
-        file.write("BOTTLE1 ")
-        file.write(" 20 ")
-        self.bb1.putOnFile(file)
-        self.bb1c.putOnFile(file)
+        # Write mains power (24000 if ON, 0 if OFF)
+        mains_value = "24000" if self.mains_power.get() else "0"
+        file.write("MAINS_POWER ")
+        file.write(mains_value)
         file.write("\n")
-
-        file.write("BOTTLE2 ")
-        file.write(" 20 ")
-        self.bb2.putOnFile(file)
-        self.bb2c.putOnFile(file)
+        
+        # Write backup switch (1 if ON, 0 if OFF)
+        backup_value = "1" if self.backup_switch.get() else "0"
+        file.write("BACKUP_SWITCH ")
+        file.write(backup_value)
         file.write("\n")
-
         
-    def readFromFile(self, line):
-        if "BOTTLE1" in line:
-            self.bb1.set(line.split()[2])
-            self.bb1c.set(line.split()[3])
-        if "BOTTLE2" in line:
-            self.bb2.set(line.split()[2])
-            self.bb2c.set(line.split()[3])
-            
-        
-class regulatorFrame:
-    def __init__(self, frame, row_, col_):
-
-        myFrame = LabelFrame(frame, text="Regulator Configuration")
-        myFrame.grid(row = row_, column = col_)
-        
-        self.targetPressure1 = labeledEntry(myFrame, 0, 0, 'Reg1 Target Pressure', "500000")
-        self.pressureDropHigh1 = labeledEntry(myFrame, 1, 0, "Reg1 Pressure drop high", "20000")
-        self.pressureDropLow1 = labeledEntry(myFrame, 2, 0, "Reg1 Pressure drop low", "1000")
-
-        self.targetPressure2 = labeledEntry(myFrame, 3, 0, 'Reg2 Target Pressure', "500000")
-        self.pressureDropHigh2 = labeledEntry(myFrame, 4, 0, "Reg2 Pressure drop high", "20000")
-        self.pressureDropLow2 = labeledEntry(myFrame, 5, 0, "Reg2 Pressure drop low", "1000")
-        
-
-    def putOnFile(self, file):
-        file.write("REGULATOR1 ")
-        file.write(" M ")
-        self.targetPressure1.putOnFile(file)
-        self.pressureDropHigh1.putOnFile(file)
-        self.pressureDropLow1.putOnFile(file)
+        # Write battery level and backup O2 flow
+        file.write("BATTERY_LEVEL ")
+        self.battery_level.putOnFile(file)
         file.write("\n")
-
-        file.write("REGULATOR2 ")
-        file.write(" M ")
-        self.targetPressure2.putOnFile(file)
-        self.pressureDropHigh2.putOnFile(file)
-        self.pressureDropLow2.putOnFile(file)
+        
+        file.write("BACKUP_O2_FLOW ")
+        self.backup_o2_flow.putOnFile(file)
         file.write("\n")
 
     def readFromFile(self, line):
-        if "REGULATOR1" in line:
-            self.targetPressure1.set(line.split()[2])
-            self.pressureDropHigh1.set(line.split()[3])
-            self.pressureDropLow1.set(line.split()[4])
-            
-        if "REGULATOR2" in line:
-            self.targetPressure2.set(line.split()[2])
-            self.pressureDropHigh2.set(line.split()[3])
-            self.pressureDropLow2.set(line.split()[4])
+        if "MAINS_POWER" in line:
+            value = line.split()[1]
+            self.mains_power.set(value == "24000")
+        elif "BACKUP_SWITCH" in line:
+            value = line.split()[1]
+            self.backup_switch.set(value == "1")
+        elif "BATTERY_LEVEL" in line:
+            self.battery_level.set(line.split()[1])
+        elif "BACKUP_O2_FLOW" in line:
+            self.backup_o2_flow.set(line.split()[1])
 
-        
-class miscPressureFrame:
+class ManufacturingDateFrame:
     def __init__(self, frame, row_, col_):
-        myFrame = LabelFrame(frame, text="Misc Configuration")
-        myFrame.grid(row = row_, column = col_)
+        self.myFrame = LabelFrame(frame, text="Manufacturing Date", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
+        self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
         
-        self.admBaroPressure = labeledEntry(myFrame, 0, 0, "Pa1", "101300")
-        self.O2Pressure = labeledEntry(myFrame, 1, 0, "O2 Pressure", "500000")
+        self.day = labeledEntry(self.myFrame, 0, 0, "Day:", "30", 8)
+        self.month = labeledEntry(self.myFrame, 1, 0, "Month:", "4", 8)
+        self.year = labeledEntry(self.myFrame, 2, 0, "Year:", "2020", 8)
 
     def putOnFile(self, file):
-        file.write("ADMBAROPRESSURE ")
-        self.admBaroPressure.putOnFile(file)
-        file.write("\n")
-
-        file.write("O2PRESSURE ")
-        self.O2Pressure.putOnFile(file)
+        file.write("MANUFACTURING_DATE ")
+        self.day.putOnFile(file)
+        self.month.putOnFile(file)
+        self.year.putOnFile(file)
         file.write("\n")
 
     def readFromFile(self, line):
-        if "ADMBAROPRESSURE " in line:
-            self.admBaroPressure.set(line.split()[1])
-            
-        if "O2Pressure " in line:
-            self.O2Pressure.set(line.split()[1])
+        if "MANUFACTURING_DATE" in line:
+            parts = line.split()
+            if len(parts) >= 4:
+                self.day.set(parts[1])
+                self.month.set(parts[2])
+                self.year.set(parts[3])
 
-class miscVentilatorFlowFrame:
+class GasInletsFrame:
     def __init__(self, frame, row_, col_):
-        myFrame = LabelFrame(frame, text="Ventilator Flow")
-        myFrame.grid(row = row_, column = col_)
+        self.myFrame = LabelFrame(frame, text="Gas Inlets", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
+        self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
+        
+        self.no_concentration = labeledEntry(self.myFrame, 0, 0, "NO concentration:", "450", 10)
+        self.no_inlet1_pressure = labeledEntry(self.myFrame, 1, 0, "NO inlet 1 Pressure (bar):", "500000", 10)
+        self.no_inlet2_pressure = labeledEntry(self.myFrame, 2, 0, "NO inlet 2 Pressure (bar):", "500000", 10)
+        self.o2_inlet_pressure = labeledEntry(self.myFrame, 3, 0, "O2 inlet Pressure (bar):", "500000", 10)
 
-        self.ventilatorFlowAlternative = IntVar()
-        self.ventilatorFlowAlternative.set(1)
-        self.ventilatorFlowAlternative1 = Radiobutton(myFrame, text="Adult square wave", value=1, variable=self.ventilatorFlowAlternative)
-        self.ventilatorFlowAlternative1.pack(anchor = W)
-        self.ventilatorFlowAlternative2 = Radiobutton(myFrame, text="Infant square wave", value=2, variable=self.ventilatorFlowAlternative)
-        self.ventilatorFlowAlternative2.pack(anchor = W)
-        self.ventilatorFlowAlternative3 = Radiobutton(myFrame, text="Neonate square wave", value=3, variable=self.ventilatorFlowAlternative)
-        self.ventilatorFlowAlternative3.pack(anchor = W)
-        self.ventilatorFlowAlternative4 = Radiobutton(myFrame, text="HFO", value=4, variable=self.ventilatorFlowAlternative)
-        self.ventilatorFlowAlternative4.pack(anchor = W)
-        self.ventilatorFlowAlternative5 = Radiobutton(myFrame, text="PUC - constant flow", value=5, variable=self.ventilatorFlowAlternative)
-        self.ventilatorFlowAlternative5.pack(anchor = W)
-        self.ventilatorFlowAlternative6 = Radiobutton(myFrame, text="Read from file", value=6, variable=self.ventilatorFlowAlternative)
-        self.ventilatorFlowAlternative6.pack(anchor = W)
+    def putOnFile(self, file):
+        file.write("GAS_INLETS ")
+        self.no_concentration.putOnFile(file)
+        self.no_inlet1_pressure.putOnFile(file)
+        self.no_inlet2_pressure.putOnFile(file)
+        self.o2_inlet_pressure.putOnFile(file)
+        file.write("\n")
 
-        label = Label(myFrame, text="File Name:")
-        label.pack(anchor = W)
+    def readFromFile(self, line):
+        if "GAS_INLETS" in line:
+            parts = line.split()
+            if len(parts) >= 5:
+                self.no_concentration.set(parts[1])
+                self.no_inlet1_pressure.set(parts[2])
+                self.no_inlet2_pressure.set(parts[3])
+                self.o2_inlet_pressure.set(parts[4])
+
+class AnalyzerFrame:
+    def __init__(self, frame, row_, col_):
+        self.myFrame = LabelFrame(frame, text="Analyzer", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
+        self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
+        
+        self.no_ppm = labeledEntry(self.myFrame, 0, 0, "NO (ppm):", "0", 10)
+        self.no2_ppm = labeledEntry(self.myFrame, 1, 0, "NO2 (ppm):", "1000", 10)
+        self.o2_percent = labeledEntry(self.myFrame, 2, 0, "O2%:", "21", 10)
+
+    def putOnFile(self, file):
+        file.write("ANALYZER_STANDARD ")
+        self.no_ppm.putOnFile(file)
+        self.no2_ppm.putOnFile(file)
+        self.o2_percent.putOnFile(file)
+        file.write("\n")
+
+    def readFromFile(self, line):
+        if "ANALYZER_STANDARD" in line:
+            parts = line.split()
+            if len(parts) >= 4:
+                self.no_ppm.set(parts[1])
+                self.no2_ppm.set(parts[2])
+                self.o2_percent.set(parts[3])
+
+class FlowSensorFrame:
+    def __init__(self, frame, row_, col_):
+        self.myFrame = LabelFrame(frame, text="Flow Sensor", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
+        self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
+        
+        # Check if v2.0 version is selected
+        version = config.get_version()
+        if version == "v2.0":
+            self.sensor_type = IntVar()
+            self.sensor_type.set(2)  # Default to High Flow
+            
+            rb1 = Radiobutton(self.myFrame, text="High Flow", variable=self.sensor_type, value=2, 
+                             bg='lightgrey', fg='black', selectcolor='white')
+            rb1.grid(row=0, column=0, sticky="w", padx=5, pady=2)
+            
+            rb2 = Radiobutton(self.myFrame, text="Low Flow", variable=self.sensor_type, value=1, 
+                             bg='lightgrey', fg='black', selectcolor='white')
+            rb2.grid(row=1, column=0, sticky="w", padx=5, pady=2)
+            
+            rb3 = Radiobutton(self.myFrame, text="No Cable", variable=self.sensor_type, value=0, 
+                             bg='lightgrey', fg='black', selectcolor='white')
+            rb3.grid(row=2, column=0, sticky="w", padx=5, pady=2)
+            
+            rb4 = Radiobutton(self.myFrame, text="No Sensor", variable=self.sensor_type, value=3, 
+                             bg='lightgrey', fg='black', selectcolor='white')
+            rb4.grid(row=3, column=0, sticky="w", padx=5, pady=2)
+            
+            rb5 = Radiobutton(self.myFrame, text="Error Sensor", variable=self.sensor_type, value=4, 
+                             bg='lightgrey', fg='black', selectcolor='white')
+            rb5.grid(row=4, column=0, sticky="w", padx=5, pady=2)
+        else:
+            # Hide frame for non-v2.0 versions
+            self.myFrame.grid_remove()
+            self.sensor_type = IntVar()
+            self.sensor_type.set(2)  # Default value
+
+    def putOnFile(self, file):
+        version = config.get_version()
+        if version == "v2.0":
+            file.write("FLOW_SENSOR ")
+            file.write(str(self.sensor_type.get()))
+            file.write("\n")
+
+    def readFromFile(self, line):
+        if "FLOW_SENSOR" in line:
+            parts = line.split()
+            if len(parts) >= 2:
+                self.sensor_type.set(int(parts[1]))
+
+class VentilatorFrame:
+    def __init__(self, frame, row_, col_):
+        self.myFrame = LabelFrame(frame, text="Ventilator", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
+        self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
+        
+        self.ventilator_type = IntVar()
+        self.ventilator_type.set(1)  # Default to Adult
+        
+        rb1 = Radiobutton(self.myFrame, text="Adult", variable=self.ventilator_type, value=1, 
+                         bg='lightgrey', fg='black', selectcolor='white')
+        rb1.grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        
+        rb2 = Radiobutton(self.myFrame, text="Infant", variable=self.ventilator_type, value=2, 
+                         bg='lightgrey', fg='black', selectcolor='white')
+        rb2.grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        
+        rb3 = Radiobutton(self.myFrame, text="Neonate", variable=self.ventilator_type, value=3, 
+                         bg='lightgrey', fg='black', selectcolor='white')
+        rb3.grid(row=2, column=0, sticky="w", padx=5, pady=2)
+        
+        rb4 = Radiobutton(self.myFrame, text="HFO", variable=self.ventilator_type, value=4, 
+                         bg='lightgrey', fg='black', selectcolor='white')
+        rb4.grid(row=3, column=0, sticky="w", padx=5, pady=2)
+        
+        rb5 = Radiobutton(self.myFrame, text="PUC", variable=self.ventilator_type, value=5, 
+                         bg='lightgrey', fg='black', selectcolor='white')
+        rb5.grid(row=4, column=0, sticky="w", padx=5, pady=2)
+        
+        rb6 = Radiobutton(self.myFrame, text="Read from file", variable=self.ventilator_type, value=6, 
+                         bg='lightgrey', fg='black', selectcolor='white')
+        rb6.grid(row=5, column=0, sticky="w", padx=5, pady=2)
+        
+        # File selection
+        Label(self.myFrame, text="File:", bg='lightgrey', fg='black').grid(row=6, column=0, sticky="w", padx=5, pady=2)
         self.fileName = StringVar()
+        
+        # Get available flow profile files
         choices = []
         script_dir = os.path.dirname(os.path.abspath(__file__))
         profiles_dir = os.path.join(script_dir, "..", "flowprofiles")
@@ -187,293 +281,100 @@ class miscVentilatorFlowFrame:
         choices.sort()
         self.fileName.set(choices[0] if choices else '')
 
-        self.filenameMenu = OptionMenu(myFrame, self.fileName, *choices)
-        self.filenameMenu.pack(anchor = W)
+        if choices:
+            self.filenameMenu = OptionMenu(self.myFrame, self.fileName, *choices)
+            self.filenameMenu.config(bg='white', fg='black')
+            self.filenameMenu.grid(row=7, column=0, sticky="w", padx=5, pady=2)
 
     def putOnFile(self, file):
-        file.write("VENTILATORFLOW ")
-        file.write(str(self.ventilatorFlowAlternative.get()))
+        file.write("VENTILATOR ")
+        file.write(str(self.ventilator_type.get()))
         file.write(" ")
         file.write(self.fileName.get())
         file.write("\n")
 
     def readFromFile(self, line):
-        if "VENTILATORFLOW " in line:
-            self.ventilatorFlowAlternative.set(line.split()[1])
-            self.fileName.set(line.split()[2])
-
-class admMiscFrame:
-    def __init__(self, frame, row_, col_):
-        myFrame = LabelFrame(frame, text="ADMINISTRATION")
-        myFrame.grid(row=row_, column=col_)
-        
-        self.TCPU = labeledEntry(myFrame, 0, 0, "TCPU", "123")
-        self.T1 = labeledEntry(myFrame, 1, 0, "T1", "23")
-        self.CPUVref = labeledEntry(myFrame, 2, 0, "CPUVref", "1300")
-        self.Plo3 = labeledEntry(myFrame, 3, 0, "Plo3", "0")
-        self.FlowSensorPressure = labeledEntry(myFrame, 4, 0, "Flow sensor pressure", "0")
-
-        self.backup = IntVar()
-        self.backup.set(0)
-        c = Checkbutton(myFrame, text="Backup Mode Active", variable=self.backup)
-        c.grid(row=5, column=0)
-
-        mySensorFrame = LabelFrame(myFrame, text="Flow Sensor Type")
-        mySensorFrame.grid(row=6, column=0)
-        self.flowSensor = IntVar()
-        self.flowSensor.set(2)
-        self.flowSensorHighFlow = Radiobutton(mySensorFrame, text="High Flow", value=2, variable=self.flowSensor)
-        self.flowSensorHighFlow.pack(anchor=W)
-        self.flowSensorLowFlow = Radiobutton(mySensorFrame, text="Low Flow", value=1, variable=self.flowSensor)
-        self.flowSensorLowFlow.pack(anchor=W)
-        self.flowSensorNone = Radiobutton(mySensorFrame, text="None Connected", value=0, variable=self.flowSensor)
-        self.flowSensorNone.pack(anchor=W)
-
-        mySensorFrame = LabelFrame(myFrame, text="Flow Sensor HW Revision")
-        mySensorFrame.grid(row=6, column=1)
-        self.flowSensorHwRevision = IntVar()
-        self.flowSensorHwRevision.set(257)
-        self.flowSensorHwRevision1_0Button = Radiobutton(mySensorFrame, text="1.0", value=256, variable=self.flowSensorHwRevision)
-        self.flowSensorHwRevision1_0Button.pack(anchor=W)
-        self.flowSensorHwRevision1_1Button = Radiobutton(mySensorFrame, text="1.1", value=257, variable=self.flowSensorHwRevision)
-        self.flowSensorHwRevision1_1Button.pack(anchor=W)
-
-    def putOnFile(self, file):
-        file.write("ADM_MISC ")
-        self.TCPU.putOnFile(file)
-        self.T1.putOnFile(file)
-        self.CPUVref.putOnFile(file)
-        file.write(str(self.backup.get()))
-        file.write(" ")
-        file.write(str(self.flowSensor.get()))
-        file.write(" ")
-        file.write(str(self.flowSensorHwRevision.get()))
-        file.write(" ")
-        self.Plo3.putOnFile(file)
-        self.FlowSensorPressure.putOnFile(file)
-        file.write("\n")
-
-    def readFromFile(self, line):
-        if "ADM_MISC" in line:
+        if "VENTILATOR" in line:
             parts = line.split()
-            if len(parts) >= 9:
-                self.TCPU.set(parts[1])
-                self.T1.set(parts[2])
-                self.CPUVref.set(parts[3])
-                self.backup.set(int(parts[4]))
-                self.flowSensor.set(int(parts[5]))
-                self.flowSensorHwRevision.set(int(parts[6]))
-                self.Plo3.set(parts[7])
-                self.FlowSensorPressure.set(parts[8])
-
-
-class AnalyzerFrame:
-    def __init__(self, frame, row_, col_):
-        
-        myFrame = LabelFrame(frame, text="ANALYZER")
-        myFrame.grid(row=row_, column=col_)
-
-        self.NO = labeledEntry(myFrame, 0, 0, "NO offset", "0")
-        self.NO2 = labeledEntry(myFrame, 1, 0, "NO2", "1000")
-        self.O2 = labeledEntry(myFrame, 2, 0, "O2", "6000")
-        self.Pa2 = labeledEntry(myFrame, 3, 0, "Pa2", "101300")
-        self.GasVBat = labeledEntry(myFrame, 4, 0, "GasVBat", "5000")
-        self.Vlow3Current = labeledEntry(myFrame, 5, 0, "Vlow3Current", "10")
-        self.PumpCurrent = labeledEntry(myFrame, 6, 0, "PumpCurrent", "10")
-        self.T2 = labeledEntry(myFrame, 7, 0, "T2", "10")
-        self.P3 = labeledEntry(myFrame, 8, 0, "P3", "-5800")
-        self.P4 = labeledEntry(myFrame, 9, 0, "P4", "-8500")
-
-    def putOnFile(self, file):
-        file.write("ANALYZER ")
-        self.NO.putOnFile(file)
-        self.NO2.putOnFile(file)
-        self.O2.putOnFile(file)
-        self.Pa2.putOnFile(file)
-        self.GasVBat.putOnFile(file)
-        self.Vlow3Current.putOnFile(file)
-        self.PumpCurrent.putOnFile(file)
-        self.T2.putOnFile(file)
-        self.P3.putOnFile(file)
-        self.P4.putOnFile(file)
-        file.write("\n")
-        
-    def readFromFile(self, line):
-        if "ANALYZER" in line:
-            parts = line.split()
-            if len(parts) >= 11:
-                self.NO.set(parts[1])
-                self.NO2.set(parts[2])
-                self.O2.set(parts[3])
-                self.Pa2.set(parts[4])
-                self.GasVBat.set(parts[5])
-                self.Vlow3Current.set(parts[6])
-                self.PumpCurrent.set(parts[7])
-                self.T2.set(parts[8])
-                self.P3.set(parts[9])
-                self.P4.set(parts[10])
-            
-
-class PowerFrame:
-    def __init__(self, frame, row_, col_):
-        myFrame = LabelFrame(frame, text="POWER")
-        myFrame.grid(row=row_, column=col_)
-
-        self.sysvoltage = labeledEntry(myFrame, 0, 0, 'SysVoltage',"24000")
-        self._24VACDC = labeledEntry(myFrame, 1, 0, '24VACDC',"24000")
-        self._18V = labeledEntry(myFrame, 2, 0, '18V',"18000")
-        self._12VUnreg = labeledEntry(myFrame, 3, 0, '12VUnreg',"12000")
-        self.L12V = labeledEntry(myFrame, 4, 0, '12V',"12000")
-        self.L5VC = labeledEntry(myFrame, 5, 0, '5VC',"5000")
-        self.L5V = labeledEntry(myFrame, 6, 0, '5V',"5000")
-        self.L3V3 = labeledEntry(myFrame, 7, 0, '3V3',"3300")
-        self.LpowCPUVref = labeledEntry(myFrame, 8, 0, 'CPUVref',"1300")
-        self.L7 = labeledEntry(myFrame, 9, 0, 'Charge Mode',"1")
-        self.L8 = labeledEntry(myFrame, 10, 0, 'Charge Level (0%-100%)',"95")
-        self.L10 = labeledEntry(myFrame, 11, 0, 'Remaining Capacity (mAh)',"12000")
-        self.L11 = labeledEntry(myFrame, 12, 0, 'Full Charge Capacity (mAh)',"18000")
-        self.L9 = labeledEntry(myFrame, 13, 0, 'Manufacturing Year',"2020")
-        self.L12 = labeledEntry(myFrame, 14, 0, 'Manufacturing Month',"4")
-        self.L12b = labeledEntry(myFrame, 15, 0, 'Manufacturing Day',"30")
-        self.L13 = labeledEntry(myFrame, 16, 0, 'Fan Speed',"1600")
-
-    def putOnFile(self, file):
-        file.write("POWER ")
-        self.sysvoltage.putOnFile(file)
-        self._24VACDC.putOnFile(file)
-        self._18V.putOnFile(file)
-        self._12VUnreg.putOnFile(file)
-        self.L12V.putOnFile(file)
-        self.L5VC.putOnFile(file)
-        self.L5V.putOnFile(file)
-        self.L3V3.putOnFile(file)
-        self.LpowCPUVref.putOnFile(file)
-        self.L7.putOnFile(file)
-        self.L8.putOnFile(file)
-        self.L10.putOnFile(file)
-        self.L11.putOnFile(file)
-        self.L9.putOnFile(file)
-        self.L12.putOnFile(file)
-        self.L12b.putOnFile(file)
-        self.L13.putOnFile(file)
-        file.write("\n")
-
-    def readFromFile(self, line):
-        if "POWER" in line:
-            parts = line.split()
-            if len(parts) >= 18:
-                self.sysvoltage.set(parts[1])
-                self._24VACDC.set(parts[2])
-                self._18V.set(parts[3])
-                self._12VUnreg.set(parts[4])
-                self.L12V.set(parts[5])
-                self.L5VC.set(parts[6])
-                self.L5V.set(parts[7])
-                self.L3V3.set(parts[8])
-                self.LpowCPUVref.set(parts[9])
-                self.L7.set(parts[10])
-                self.L8.set(parts[11])
-                self.L10.set(parts[12])
-                self.L11.set(parts[13])
-                self.L9.set(parts[14])
-                self.L12.set(parts[15])
-                self.L12b.set(parts[16])
-                self.L13.set(parts[17])
-
-
-class SerialFrame:
-    def __init__(self, frame, row_, col_):
-        myFrame = LabelFrame(frame, text="SERIAL")
-        myFrame.grid(row=row_, column=col_)
-
-        self.ser24V = labeledEntry(myFrame, 0, 0, "Ser24V", "24000")
-        self.ser12V = labeledEntry(myFrame, 1, 0, "Ser12V", "12000")
-        self.ser7V = labeledEntry(myFrame, 2, 0, "Ser7V", "7000")
-        self.ser5V = labeledEntry(myFrame, 3, 0, "Ser5V", "5000")
-        self.ser33VV = labeledEntry(myFrame, 4, 0, "Ser33VV", "3300")
-        self.serVrefCPU = labeledEntry(myFrame, 5, 0, "SerVrefCPU", "1300")
-
-    def putOnFile(self, file):
-        file.write("SERIAL ")
-        self.ser24V.putOnFile(file)
-        self.ser12V.putOnFile(file)
-        self.ser7V.putOnFile(file)
-        self.ser5V.putOnFile(file)
-        self.ser33VV.putOnFile(file)
-        self.serVrefCPU.putOnFile(file)
-        file.write("\n")
-
-    def readFromFile(self, line):
-        if "SERIAL" in line:
-            parts = line.split()
-            if len(parts) >= 7:
-                self.ser24V.set(parts[1])
-                self.ser12V.set(parts[2])
-                self.ser7V.set(parts[3])
-                self.ser5V.set(parts[4])
-                self.ser33VV.set(parts[5])
-                self.serVrefCPU.set(parts[6])
-
+            if len(parts) >= 3:
+                self.ventilator_type.set(int(parts[1]))
+                self.fileName.set(parts[2])
 
 # Création de la fenêtre principale
 root = tk.Tk()
-root.title('Chocolat Simulator Configuration')
-dataFile2 = os.path.join(os.environ.get('TEMP', os.environ.get('TMP', '')), "ONASimFile2.dat")
+root.title('Configuration')
+root.configure(bg='black')
 
-# Frame principale pour la configuration du gaz
-labelFrameAA = LabelFrame(root, text="Gas Configuration")
-labelFrameAA.grid(row=0, column=0)
+# Configuration de la géométrie de la grille
+root.grid_columnconfigure(0, weight=1)
+root.grid_columnconfigure(1, weight=1)
+root.grid_rowconfigure(0, weight=1)
+root.grid_rowconfigure(1, weight=1)
+root.grid_rowconfigure(2, weight=1)
 
-bf = bottleFrame(labelFrameAA, 0, 0)
-rf = regulatorFrame(labelFrameAA, 1, 0)
-mf = miscPressureFrame(labelFrameAA, 2, 0)
-vff = miscVentilatorFlowFrame(labelFrameAA, 3, 0)
-af = admMiscFrame(labelFrameAA, 4, 0)
+# Header avec fond gris
+header_frame = Frame(root, bg='grey', height=30)
+header_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+header_frame.grid_propagate(False)
 
-# Frame pour l'analyseur
-labelFrameBB = LabelFrame(root)
-labelFrameBB.grid(row=0, column=1)
-anlz = AnalyzerFrame(labelFrameBB, 0, 1)
-power = PowerFrame(labelFrameBB, 1, 1)
+header_label = Label(header_frame, text="Chocolat Simulator - Standard Configuration", 
+                    bg='grey', fg='white', font=('Arial', 12, 'bold'))
+header_label.pack(expand=True)
 
-# Frame pour les composants en série
-labelFrameCC = LabelFrame(root)
-labelFrameCC.grid(row=0, column=2)
-ser = SerialFrame(labelFrameCC, 0, 2)
+# Body avec fond noir contenant les 6 frames
+body_frame = Frame(root, bg='black')
+body_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
 
-# Frame pour les fonctions diverses
-labelFrameMisc = LabelFrame(root, text="MISC")
-labelFrameMisc.grid(row=0, column=3)
+# Configuration de la grille du body
+body_frame.grid_columnconfigure(0, weight=1)
+body_frame.grid_columnconfigure(1, weight=1)
+body_frame.grid_rowconfigure(0, weight=1)
+body_frame.grid_rowconfigure(1, weight=1)
+body_frame.grid_rowconfigure(2, weight=1)
 
-Button(labelFrameMisc, text='Clear GUI Status', command=onClearGUIStatus).grid(row=0, column=0)
+# Création des 6 frames
+user_actions = UserActionsFrame(body_frame, 0, 0)
+manufacturing_date = ManufacturingDateFrame(body_frame, 0, 1)
+gas_inlets = GasInletsFrame(body_frame, 1, 0)
+analyzer = AnalyzerFrame(body_frame, 1, 1)
+flow_sensor = FlowSensorFrame(body_frame, 2, 0)
+ventilator = VentilatorFrame(body_frame, 2, 1)
 
-def onok():
-    with open(dataFile2, "w") as f2:
-        bf.putOnFile(f2)
-        rf.putOnFile(f2)
-        mf.putOnFile(f2)
-        af.putOnFile(f2)
-        anlz.putOnFile(f2)
-        power.putOnFile(f2)
-        ser.putOnFile(f2)
-        vff.putOnFile(f2)
+# Footer avec fond noir
+footer_frame = Frame(root, bg='black')
+footer_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
 
-Button(root, text='Save Configuration', command=onok).grid(row=1, column=3)
+def onSave():
+    dataFile = r"C:\ONASimFile_Standard.dat"
+    with open(dataFile, "w") as f:
+        user_actions.putOnFile(f)
+        manufacturing_date.putOnFile(f)
+        gas_inlets.putOnFile(f)
+        analyzer.putOnFile(f)
+        flow_sensor.putOnFile(f)
+        ventilator.putOnFile(f)
 
-# Essaie de charger la configuration existante
+save_button = Button(footer_frame, text='Save Configuration', command=onSave,
+                    bg='#4CAF50', fg='white', font=('Arial', 10, 'bold'))
+save_button.pack(side="left", padx=10, pady=5)
+
+clear_button = Button(footer_frame, text='Clear GUI Status', command=onClearGUIStatus,
+                     bg='#f44336', fg='white', font=('Arial', 10, 'bold'))
+clear_button.pack(side="left", padx=10, pady=5)
+
+# Load existing configuration
+dataFile = r"C:\ONASimFile_Standard.dat"
 try:
-    with open(dataFile2) as f2:
-        lines = f2.readlines()
-        for line in lines:
-            bf.readFromFile(line)
-            rf.readFromFile(line)
-            mf.readFromFile(line)
-            af.readFromFile(line)
-            anlz.readFromFile(line)
-            power.readFromFile(line)
-            ser.readFromFile(line)
-            vff.readFromFile(line)
-        
+    if os.path.exists(dataFile):
+        with open(dataFile) as f:
+            lines = f.readlines()
+            for line in lines:
+                user_actions.readFromFile(line)
+                manufacturing_date.readFromFile(line)
+                gas_inlets.readFromFile(line)
+                analyzer.readFromFile(line)
+                flow_sensor.readFromFile(line)
+                ventilator.readFromFile(line)
 except Exception as e:
     print("Initializing with default values:", str(e))
 
