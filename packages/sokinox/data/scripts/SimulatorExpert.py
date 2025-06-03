@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Windows version du script Simulator.py original
-# Compatible avec Python 2.7 et 3.x
-#
-# Utilisation: python Simulator.py
+# Expert version of Chocolat Panel Simulator
 #
 
 import sys
@@ -13,12 +10,12 @@ import tkinter as tk
 from tkinter import *
 
 def onClearGUIStatus():
-    path = os.path.expanduser("~/Ona/var/persistent/SystemStatus.conf")
+    path = r"C:\Ona\var\persistent\SystemStatus.conf"
     if os.path.exists(path):
         os.remove(path)
 
 # Création des dossiers requis
-config_dir = os.path.expanduser("~/Ona/var/persistent")
+config_dir = r"C:\Ona\var\persistent"
 if not os.path.exists(config_dir):
     os.makedirs(config_dir)
 
@@ -414,7 +411,7 @@ class SerialFrame:
 # Création de la fenêtre principale
 root = tk.Tk()
 root.title('Chocolat Simulator Configuration')
-dataFile2 = os.path.join(os.environ.get('TEMP', os.environ.get('TMP', '')), "ONASimFile2.dat")
+dataFile2 = r"C:\ONASimFile2.dat"
 
 # Frame principale pour la configuration du gaz
 labelFrameAA = LabelFrame(root, text="Gas Configuration")

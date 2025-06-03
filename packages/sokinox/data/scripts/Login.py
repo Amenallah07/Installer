@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Login.py - Page de connexion pour Chocolat Panel (Version Debug)
-# Compatible avec Python 2.7 et 3.x
+# Login.py - Login page
 #
 
 import sys
@@ -13,7 +12,11 @@ from tkinter import messagebox
 import hashlib
 import json
 import subprocess
+from ConfigManager import get_config
 import psutil
+
+# load configuration
+config = get_config()
 
 class ChocolatLogin:
     def __init__(self):
@@ -27,17 +30,8 @@ class ChocolatLogin:
         # Variables
         self.username_var = StringVar()
         self.password_var = StringVar()
-        self.version_var = StringVar(value="v2.0")
-        self.profile_var = StringVar(value="Standard")
-        
-        # Configuration repos
-        self.config_dir = r"C:\Ona\var\persistent"
-        if not os.path.exists(self.config_dir):
-            os.makedirs(self.config_dir)
-            
-        self.config_file = os.path.join(self.config_dir, "chocolat_config.json")
-        
-        self.load_config()
+        self.version_var = StringVar(value=config.get_version())
+        self.profile_var = StringVar(value=config.get_profile())
         
         self.create_login_interface()
         
@@ -101,6 +95,9 @@ class ChocolatLogin:
             
         self.root.geometry('500x400')
         self.center_window()
+
+        # The “Standard” user profile is selected by default
+        self.profile_var = StringVar(value="Standard")
         
         # Title
         title_label = Label(self.root, text="Welcome to SOKINOX Simulator", font=("Arial", 14, "bold"))
@@ -156,31 +153,6 @@ class ChocolatLogin:
             messagebox.showerror("Authentication error",
                                "Authentication error, please retry !")
             self.password_var.set("")
-            
-    def save_config(self):
-        """save config"""
-        config = {
-            "version": self.version_var.get(),
-            "profile": self.profile_var.get(),
-            "last_login": True
-        }
-        
-        try:
-            with open(self.config_file, 'w') as f:
-                json.dump(config, f, indent=2)
-        except Exception as e:
-            print(f"saving error: {e}")
-            
-    def load_config(self):
-        """Load config"""
-        try:
-            if os.path.exists(self.config_file):
-                with open(self.config_file, 'r') as f:
-                    config = json.load(f)
-                    self.version_var.set(config.get("version", "v2.0"))
-                    self.profile_var.set(config.get("profile", "Standard"))
-        except Exception as e:
-            print(f"Loading error: {e}")
 
     def kill_python_script(self, script_path):
         import psutil
@@ -205,10 +177,10 @@ class ChocolatLogin:
 
     def start_application(self):
         """start application"""
-        self.save_config()
+        config.save_config(version=self.version_var.get(), profile=self.profile_var.get())
         
-        version = self.version_var.get()
-        profile = self.profile_var.get()
+        version = config.get_version()
+        profile = config.get_profile()
         
         script_dir = os.path.dirname(os.path.abspath(__file__))
         base_dir = os.path.dirname(script_dir)
