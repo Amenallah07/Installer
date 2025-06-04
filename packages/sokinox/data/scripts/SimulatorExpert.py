@@ -410,7 +410,16 @@ class SerialFrame:
 
 # Création de la fenêtre principale
 root = tk.Tk()
-root.title('Chocolat Simulator Configuration')
+root.title('Sokinox Simulator Configuration')
+
+try:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.join(script_dir, "..", "icons", "icon.ico")
+    if os.path.exists(icon_path):
+        root.iconbitmap(icon_path)
+except:
+    pass
+
 dataFile2 = r"C:\ONASimFile2.dat"
 
 # Frame principale pour la configuration du gaz

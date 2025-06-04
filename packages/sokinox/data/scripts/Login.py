@@ -21,7 +21,15 @@ config = get_config()
 class ChocolatLogin:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title('Chocolat Panel - Connexion')
+        self.root.title('Sokinox - Connexion')
+
+        try:
+            icon_path = os.path.join(os.path.dirname(__file__), "..", "icons", "icon.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+        except:
+            pass  # Keep the default favicon
+
         self.root.geometry('400x300')
         self.root.resizable(False, False)
         

@@ -4,10 +4,6 @@ Component.prototype.createOperations = function()
 {
     try {
         
-	// Force English - check the existance of this repo <QtIFW_DIR>/translations/
-	// or it will use the system language
-        installer.setGuiLanguage("en");
-	
 	component.createOperations();
 
         if (systemInfo.productType === "windows") {

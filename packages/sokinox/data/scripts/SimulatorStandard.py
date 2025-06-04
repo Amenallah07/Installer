@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# SimulatorStandard.py - Standard version of Chocolat Panel Simulator
+# SimulatorStandard.py - Standard version of Sokinox Simulator
 #
 
 import sys
@@ -343,6 +343,14 @@ class VentilatorFrame:
 # Principal window
 root = tk.Tk()
 root.title('Configuration')
+try:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.join(script_dir, "..", "icons", "icon.ico")
+    if os.path.exists(icon_path):
+        root.iconbitmap(icon_path)
+except:
+    pass
+
 root.configure(bg='black')
 
 root.grid_columnconfigure(0, weight=1)
