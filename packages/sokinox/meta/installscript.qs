@@ -1,39 +1,40 @@
-function Component()
-{
-    // Constructeur par défaut
-}
+function Component() {}
 
 Component.prototype.createOperations = function()
 {
     try {
-        // Appel à la méthode parente
-        component.createOperations();
+        
+	// Force English - check the existance of this repo <QtIFW_DIR>/translations/
+	// or it will use the system language
+        installer.setGuiLanguage("en");
+	
+	component.createOperations();
 
         if (systemInfo.productType === "windows") {
-            // Création d'un raccourci dans le menu démarrer
+            // Start menu shortcut
             component.addOperation("CreateShortcut", 
                 "@TargetDir@/chocolat.bat", 
-                "@StartMenuDir@/Chocolat Panel.lnk",
+                "@StartMenuDir@/Sokinox Simulator.lnk",
                 "workingDirectory=@TargetDir@",
-                "iconPath=%SystemRoot%/system32/SHELL32.dll",
-                "iconId=2"
+                "iconPath=@TargetDir@/icons/icon.ico",
+                "iconId=0"
             );
-            
-            // Création d'un raccourci sur le bureau
+
+            // Desktop shortcut
             component.addOperation("CreateShortcut", 
                 "@TargetDir@/chocolat.bat", 
-                "@DesktopDir@/Chocolat Panel.lnk",
+                "@DesktopDir@/Sokinox Simulator.lnk",
                 "workingDirectory=@TargetDir@",
-                "iconPath=%SystemRoot%/system32/SHELL32.dll",
-                "iconId=2"
+                "iconPath=@TargetDir@/icons/icon.ico",
+                "iconId=0"
             );
-            
-            // Créer les répertoires nécessaires pour les fichiers de configuration
-            component.addOperation("Mkdir", "@HomeDir@/Ona");
-            component.addOperation("Mkdir", "@HomeDir@/Ona/var");
-            component.addOperation("Mkdir", "@HomeDir@/Ona/var/persistent");
-            
-            // Installer Python si nécessaire (commenté car généralement mieux fait avec un prérequis)
+
+            // Customized directories
+            component.addOperation("Mkdir", "C:/Ona");
+            component.addOperation("Mkdir", "C:/Ona/var");
+            component.addOperation("Mkdir", "C:/Ona/var/persistent");
+
+            // (optionnel) Installation of Python
             // component.addOperation("Execute", "@TargetDir@/prerequisites/python-3.9.10-amd64.exe", "/quiet", "InstallAllUsers=1", "PrependPath=1");
         }
     } catch (e) {
@@ -45,7 +46,6 @@ Component.prototype.installationFinished = function()
 {
     try {
         if (installer.isInstaller() && installer.status == QInstaller.Success) {
-            // Proposer de lancer l'application après l'installation
             if (systemInfo.productType === "windows") {
                 installer.executeDetached("@TargetDir@/chocolat.bat");
             }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# ConfigManager.py - Configuration manager for Chocolat Panel
+# ConfigManager.py - Configuration manager for Sokinox
 # Utility for reading the configuration saved in other scripts
 #
 

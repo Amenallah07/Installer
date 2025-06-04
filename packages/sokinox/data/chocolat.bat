@@ -1,26 +1,24 @@
 @echo off
-REM Script principal de lancement de l'application Chocolat
-REM Équivalent Windows du script bashlauncher.sh
 
-REM Définit le répertoire d'installation comme répertoire de travail
+REM Sets installation directory as working directory
 cd /d "%~dp0"
 
-REM Configure les variables d'environnement nécessaires
+REM Set the necessary environment variables
 call scripts\choco_env.bat
 
-REM Vérifie si Python est installé
+REM Checks if Python is installed
 python --version >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo Python n'est pas installé ou n'est pas dans le PATH.
-    echo Le système d'authentification ne peut pas fonctionner.
+    echo Python is not installed or not in the PATH.
+    echo The authentication system cannot function.
     echo.
-    echo Installation de Python requise pour continuer.
+    echo Python installation required to continue.
     pause
     exit /b 1
 ) 
 
-REM Lance la page de login
+REM Launch Login page
 python "scripts\Login.py"
 
-echo L'application Chocolat a été lancée.
-echo Vous pouvez fermer cette fenêtre.
+echo The Sokinox Simulator has been launched.
+echo You can close this window.

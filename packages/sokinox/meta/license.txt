@@ -1,27 +1,27 @@
-CONTRAT DE LICENCE DE LOGICIEL - CHOCOLAT PANEL
+SOFTWARE LICENSE AGREEMENT - SOKINOX SIMULATOR
 
-Ce logiciel est fourni par Inosystems et son utilisation est régie par les termes de cette licence.
+This software is provided by Inosystems and its use is governed by the terms of this license.
 
-1. OCTROI DE LICENCE
-Maquet vous accorde une licence non exclusive et non transférable pour utiliser le logiciel Chocolat Panel conformément aux termes de cette licence.
+1. GRANT OF LICENSE
+InoSystems grants you a non-exclusive, non-transferable license to use the SOKINOX software in accordance with the terms of this license.
 
 2. RESTRICTIONS
-Vous ne pouvez pas:
-- Copier, modifier, adapter ou traduire le logiciel
-- Désassembler, décompiler ou tenter de découvrir le code source
-- Vendre, louer, sous-licencier ou transférer le logiciel
-- Utiliser le logiciel d'une manière non conforme à cette licence
+You may not:
+- Copy, modify, adapt or translate the Software
+- Disassemble, decompile or attempt to discover the source code
+- Sell, rent, sublicense or transfer the Software
+- Use the Software in any manner inconsistent with this License.
 
-3. PROPRIÉTÉ
-Le logiciel est la propriété de Maquet et est protégé par les lois sur le droit d'auteur et autres lois applicables.
+3. OWNERSHIP
+The Software is the property of InoSystems and is protected by copyright and other applicable laws.
 
-4. GARANTIE LIMITÉE
-Le logiciel est fourni "tel quel" sans garantie d'aucune sorte.
+4. LIMITED WARRANTY
+The software is provided "as is" without warranty of any kind.
 
-5. LIMITATION DE RESPONSABILITÉ
-En aucun cas Maquet ne sera responsable des dommages directs, indirects, spéciaux ou consécutifs résultant de l'utilisation ou de l'impossibilité d'utiliser ce logiciel.
+5. LIMITATION OF LIABILITY
+In no event shall InoSystems be liable for any direct, indirect, special or consequential damages arising out of the use of or inability to use this software.
 
-En installant ce logiciel, vous acceptez les termes de cette licence.
+By installing this software, you agree to the terms of this license.
 
 Copyright © 2025 InoSystemes
-Tous droits réservés.
+All rights reserved.
