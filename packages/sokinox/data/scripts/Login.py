@@ -32,17 +32,17 @@ class ChocolatLogin:
 
         self.root.geometry('400x300')
         self.root.resizable(False, False)
-        
+
         self.center_window()
-        
+
         # Variables
         self.username_var = StringVar()
         self.password_var = StringVar()
         self.version_var = StringVar(value=config.get_version())
         self.profile_var = StringVar(value=config.get_profile())
-        
+
         self.create_login_interface()
-        
+
     def center_window(self):
         """Center window"""
         self.root.update_idletasks()
@@ -51,110 +51,110 @@ class ChocolatLogin:
         x = (self.root.winfo_screenwidth() // 2) - (width // 2)
         y = (self.root.winfo_screenheight() // 2) - (height // 2)
         self.root.geometry(f'{width}x{height}+{x}+{y}')
-        
+
     def hash_password(self, password):
         """Hash password"""
         salt = "chocolat_sokinox_2025"
         return hashlib.sha256((password + salt).encode()).hexdigest()
-        
+
     def verify_credentials(self, username, password):
         """verify credentials"""
         expected_username = "sokinox"
         expected_password_hash = self.hash_password("sokinox25")
         input_password_hash = self.hash_password(password)
-        
+
         return username == expected_username and input_password_hash == expected_password_hash
-        
+
     def create_login_interface(self):
         """create login interface"""
         # Title
         title_label = Label(self.root, text="SOKINOX", font=("Arial", 16, "bold"))
         title_label.pack(pady=20)
-        
+
         # principal frame
         login_frame = Frame(self.root)
         login_frame.pack(pady=20)
-        
+
         # Login
         Label(login_frame, text="Login:", font=("Arial", 10)).grid(row=0, column=0, sticky="e", padx=5, pady=5)
         username_entry = Entry(login_frame, textvariable=self.username_var, width=20, font=("Arial", 10))
         username_entry.grid(row=0, column=1, padx=5, pady=5)
-        
+
         # PWD
         Label(login_frame, text="Password:", font=("Arial", 10)).grid(row=1, column=0, sticky="e", padx=5, pady=5)
         password_entry = Entry(login_frame, textvariable=self.password_var, show="*", width=20, font=("Arial", 10))
         password_entry.grid(row=1, column=1, padx=5, pady=5)
-        
+
         login_button = Button(login_frame, text="Connect", command=self.login,
                              bg="#4CAF50", fg="white", font=("Arial", 10, "bold"), width=15)
         login_button.grid(row=2, column=0, columnspan=2, pady=15)
-        
+
         # Bind Enter key
         password_entry.bind('<Return>', lambda event: self.login())
         username_entry.bind('<Return>', lambda event: password_entry.focus())
-        
+
         username_entry.focus()
-        
+
     def create_config_interface(self):
         """create config interface"""
         # Clear window
         for widget in self.root.winfo_children():
             widget.destroy()
-            
+
         self.root.geometry('500x400')
         self.center_window()
 
         # The “Standard” user profile is selected by default
         self.profile_var = StringVar(value="Standard")
-        
+
         # Title
         title_label = Label(self.root, text="Welcome to SOKINOX Simulator", font=("Arial", 14, "bold"))
         title_label.pack(pady=20)
-        
+
         # Principal frame
         main_frame = Frame(self.root)
         main_frame.pack(pady=20)
 
         version_frame = LabelFrame(main_frame, text="Software version", font=("Arial", 10, "bold"))
         version_frame.pack(fill="x", padx=20, pady=10)
-        
+
         versions = ["v2.0", "v1.6.3", "v1.6.1"]
         for version in versions:
-            rb = Radiobutton(version_frame, text=version, variable=self.version_var, 
+            rb = Radiobutton(version_frame, text=version, variable=self.version_var,
                            value=version, font=("Arial", 10))
             rb.pack(anchor="w", padx=10, pady=2)
-            
+
         profile_frame = LabelFrame(main_frame, text="User profile", font=("Arial", 10, "bold"))
         profile_frame.pack(fill="x", padx=20, pady=10)
-        
-        rb_standard = Radiobutton(profile_frame, text="Standard", variable=self.profile_var, 
+
+        rb_standard = Radiobutton(profile_frame, text="Standard", variable=self.profile_var,
                                 value="Standard", font=("Arial", 10))
         rb_standard.pack(anchor="w", padx=10, pady=2)
-        
-        rb_expert = Radiobutton(profile_frame, text="Expert", variable=self.profile_var, 
+
+        rb_expert = Radiobutton(profile_frame, text="Expert", variable=self.profile_var,
                               value="Expert", font=("Arial", 10))
         rb_expert.pack(anchor="w", padx=10, pady=2)
-        
+
         button_frame = Frame(main_frame)
         button_frame.pack(pady=20)
-        
+
         start_button = Button(button_frame, text="Start", command=self.start_application,
                             bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), width=12)
         start_button.pack(side="left", padx=10)
-        
+
         quit_button = Button(button_frame, text="Exit", command=self.exit_application,
                            bg="#f44336", fg="white", font=("Arial", 12, "bold"), width=12)
         quit_button.pack(side="left", padx=10)
-        
+
     def login(self):
         """Authentication process"""
         username = self.username_var.get().strip()
         password = self.password_var.get().strip()
-        
+
         if not username or not password:
             messagebox.showwarning("Error", "Please enter your login and password.")
             return
-            
+
         if self.verify_credentials(username, password):
             self.create_config_interface()
         else:
@@ -186,13 +186,13 @@ class ChocolatLogin:
     def start_application(self):
         """start application"""
         config.save_config(version=self.version_var.get(), profile=self.profile_var.get())
-        
+
         version = config.get_version()
         profile = config.get_profile()
-        
+
         script_dir = os.path.dirname(os.path.abspath(__file__))
         base_dir = os.path.dirname(script_dir)
-        
+
         try:
             if profile == "Standard":
                 simulator_script = os.path.join(script_dir, "SimulatorStandard.py")
@@ -206,7 +206,7 @@ class ChocolatLogin:
                 subprocess.Popen([sys.executable, simulator_script])
             else:
                 return
-                
+
             self.root.after(1000, lambda: self.launch_executables(version, base_dir))
 
         except Exception as e:
@@ -223,22 +223,22 @@ class ChocolatLogin:
             panel_exe = os.path.join(bin_dir, f"chocolatPanel-{version}_release.exe")
 
             launched = False
-            
+
             if os.path.exists(simulator_exe):
                 subprocess.Popen([simulator_exe], creationflags=CREATE_NEW_CONSOLE)
                 launched = True
             else:
                 messagebox.showerror("ERROR", f"Missing file:\n- {simulator_exe}")
-                
+
             if os.path.exists(panel_exe):
                 subprocess.Popen([panel_exe], creationflags=CREATE_NEW_CONSOLE)
                 launched = True
             else:
                 messagebox.showerror("ERROR", f"Missing file:\n- {panel_exe}")
-                
+
             if not launched:
                 messagebox.showerror("Error", f"No executable launched for version: {version}")
-                
+
         except Exception as e:
             messagebox.showerror("Error", f"Executable launch error: {e}")
 
