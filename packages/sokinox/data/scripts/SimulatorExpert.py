@@ -315,8 +315,9 @@ class MFCFrame:
         if "MFC" in line:
             self.mfcState.set(line.split()[1])
             self.verboseMFC.set(line.split()[2])
-            self.mfcStateErrorCode.set(line.split()[3])
-            self.mfcStateBootErrorCode.set(line.split()[4])
+            if config.get_version() == "v2.0":
+                self.mfcStateErrorCode.set(line.split()[3])
+                self.mfcStateBootErrorCode.set(line.split()[4])
 
 
 class FlowSensorFrame:
@@ -404,7 +405,8 @@ class FlowSensorFrame:
             self.flowSensor.set(line.split()[1])
             self.flowSensorState.set(line.split()[2])
             self.verboseFlowSensor.set(line.split()[3])
-            self.flowSensorStateErrorCode.set(line.split()[4])
+            if config.get_version() == "v2.0":
+                self.flowSensorStateErrorCode.set(line.split()[4])
 
 
 #
@@ -617,7 +619,8 @@ tabControl.add(tab3, text='SER')
 tabControl.add(tab4, text='POW')
 tabControl.add(tab5, text='GUI')
 
-dataFile2 = r"C:\ONASimFile2.dat"
+version = config.get_version()
+dataFile2 = fr"C:\ONASimFile2-{version}.dat"
 
 labelFrameAA = LabelFrame(tab1, text="Gas Configuration")
 labelFrameAA.grid(row=0, column=0)

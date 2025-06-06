@@ -157,7 +157,8 @@ class UserActionsFrame:
             parts = line.split()
             if len(parts) >= 9:
                 self.backup_switch_state = (int(parts[4]))
-                self.backup_o2_flow.set(parts[8])
+                if config.get_version() == "v2.0":
+                    self.backup_o2_flow.set(parts[8])
 
 
 class ManufacturingDateFrame:
@@ -441,11 +442,11 @@ body_frame.grid_rowconfigure(3, weight=1)
 # Flag to prevent auto-save during file loading
 loading_from_file = False
 
-
 # Auto-save function
 def auto_save():
     if not loading_from_file:
-        dataFile = r"C:\ONASimFile2.dat"
+        version = config.get_version()
+        dataFile = fr"C:\ONASimFile2-{version}.dat"
         try:
             with open(dataFile, "w") as f:
                 print("auto-saving ")
