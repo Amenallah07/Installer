@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # SimulatorStandard.py - Standard version of Sokinox Simulator
+# Dynamic template-based solution with unit conversions
 #
 
 import sys
@@ -45,6 +46,7 @@ def get_template_file_path():
 
     return template_file
 
+
 def get_mapping_file_path():
     """Get the mapping configuration file path"""
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -60,10 +62,10 @@ def load_field_mapping():
             "concentration": 3
         },
         "BOTTLE2": {
-            "pressure": 2
+            "bottle2_pressure": 2
         },
         "O2PRESSURE": {
-            "pressure": 1
+            "o2_pressure": 1
         },
         "ANALYZER": {
             "no": 1,
@@ -90,6 +92,36 @@ def load_field_mapping():
         },
         "SERVICELEVEL": {
             "service_level": 1
+        },
+        "_unit_conversions": {
+            "backup_o2_flow": {
+                "old_to_new_factor": 1000,
+                "new_to_old_factor": 0.001
+            },
+            "pressure": {
+                "old_to_new_factor": 0.00001,
+                "new_to_old_factor": 100000
+            },
+            "bottle2_pressure": {
+                "old_to_new_factor": 0.00001,
+                "new_to_old_factor": 100000
+            },
+            "o2_pressure": {
+                "old_to_new_factor": 0.00001,
+                "new_to_old_factor": 100000
+            },
+            "no": {
+                "old_to_new_factor": 0.001,
+                "new_to_old_factor": 1000
+            },
+            "no2": {
+                "old_to_new_factor": 0.001,
+                "new_to_old_factor": 1000
+            },
+            "o2": {
+                "old_to_new_factor": 0.01,
+                "new_to_old_factor": 100
+            }
         }
     }
 
@@ -97,17 +129,55 @@ def load_field_mapping():
         if os.path.exists(mapping_file):
             with open(mapping_file, 'r') as f:
                 mapping = json.load(f)
-                print(f"Loaded field mapping from {mapping_file}")
                 return mapping
         else:
             # Create default mapping file for future customization
             with open(mapping_file, 'w') as f:
                 json.dump(default_mapping, f, indent=4)
-            print(f"Created default mapping file: {mapping_file}")
             return default_mapping
     except Exception as e:
         print(f"Error loading mapping: {e}, using defaults")
         return default_mapping
+
+
+# Global mapping variable for conversion functions
+_field_mapping = None
+
+
+def get_field_mapping():
+    """Get cached field mapping"""
+    global _field_mapping
+    if _field_mapping is None:
+        _field_mapping = load_field_mapping()
+    return _field_mapping
+
+
+def convert_old_to_new(field_name, old_value):
+    """Convert Expert (Old) value to Standard (New) display value"""
+    try:
+        mapping = get_field_mapping()
+        conversions = mapping.get('_unit_conversions', {})
+
+        if field_name in conversions:
+            factor = conversions[field_name].get('old_to_new_factor', 1)
+            return str(float(old_value) * factor)
+        return str(old_value)
+    except:
+        return str(old_value)
+
+
+def convert_new_to_old(field_name, new_value):
+    """Convert Standard (New) input value to Expert (Old) storage value"""
+    try:
+        mapping = get_field_mapping()
+        conversions = mapping.get('_unit_conversions', {})
+
+        if field_name in conversions:
+            factor = conversions[field_name].get('new_to_old_factor', 1)
+            return str(float(new_value) * factor)
+        return str(new_value)
+    except:
+        return str(new_value)
 
 
 def load_template_lines():
@@ -166,7 +236,17 @@ class TemplateLineProcessor:
     def process_line(self, line_type, standard_values):
         """Process a specific line type with standard values"""
         if line_type not in self.template_lines:
+            print(f"  Line type {line_type} not found in template")
             return None
+
+        # Special handling for BOTTLE2 pressure
+        if line_type == "BOTTLE2" and 'bottle2_pressure' in standard_values:
+            parts = self.template_lines[line_type].split()
+            if len(parts) >= 3:
+                old_value = parts[2]
+                new_value = standard_values['bottle2_pressure']
+                parts[2] = new_value
+            return ' '.join(parts)
 
         if line_type not in self.mapping:
             # Return original line if no mapping exists
@@ -178,10 +258,15 @@ class TemplateLineProcessor:
 
         # Replace values according to mapping
         for field_name, position in line_mapping.items():
+            if field_name.startswith('_'):  # Skip metadata fields
+                continue
             if field_name in standard_values and position < len(parts):
-                parts[position] = str(standard_values[field_name])
+                old_value = parts[position]
+                new_value = str(standard_values[field_name])
+                parts[position] = new_value
 
-        return ' '.join(parts)
+        result = ' '.join(parts)
+        return result
 
     def get_all_processed_lines(self, standard_values):
         """Get all processed lines in correct order"""
@@ -277,7 +362,6 @@ class UserActionsFrame:
 
         def on_mains_toggle(state):
             self.mains_power_state = state
-            print("Mains Power is", "ON" if state else "OFF")
 
         self.mains_switch = ToggleSwitch(self.myFrame, on_toggle=on_mains_toggle, initial_state=self.mains_power_state,
                                          bg='lightgrey', auto_save_callback=self.auto_save_callback)
@@ -294,7 +378,6 @@ class UserActionsFrame:
 
         def on_backup_toggle(state):
             self.backup_switch_state = state
-            print("Backup switch is", "ON" if state else "OFF")
 
         self.backup_switch = ToggleSwitch(self.myFrame, on_toggle=on_backup_toggle,
                                           initial_state=self.backup_switch_state, bg='lightgrey',
@@ -303,7 +386,9 @@ class UserActionsFrame:
 
         # Backup O2 flow
         if config.get_version() == "v2.0":
-            self.backup_o2_flow = labeledEntry(self.myFrame, 3, 0, "Backup O2 flow L/min", "5", 8,
+            # Display in Standard format (New) but store in Expert format (Old)
+            default_new_value = convert_old_to_new('backup_o2_flow', "5000")  # 5000 old = 5 new
+            self.backup_o2_flow = labeledEntry(self.myFrame, 3, 0, "Backup O2 flow L/min", default_new_value, 8,
                                                self.auto_save_callback)
 
     def get_standard_values(self):
@@ -315,7 +400,10 @@ class UserActionsFrame:
         }
 
         if config.get_version() == "v2.0":
-            values['backup_o2_flow'] = self.backup_o2_flow.get()
+            # Convert Standard (New) value to Expert (Old) for storage
+            new_value = self.backup_o2_flow.get()
+            old_value = convert_new_to_old('backup_o2_flow', new_value)
+            values['backup_o2_flow'] = old_value
 
         return values
 
@@ -335,7 +423,10 @@ class UserActionsFrame:
             self.backup_switch.draw()
 
         if config.get_version() == "v2.0" and 'backup_o2_flow' in values:
-            self.backup_o2_flow.set(values['backup_o2_flow'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['backup_o2_flow']
+            new_value = convert_old_to_new('backup_o2_flow', old_value)
+            self.backup_o2_flow.set(new_value)
 
 
 class ManufacturingDateFrame:
@@ -372,31 +463,55 @@ class GasInletsFrame:
         self.auto_save_callback = auto_save_callback
 
         self.no_concentration = labeledEntry(self.myFrame, 0, 0, "NO concentration", "450", 10, self.auto_save_callback)
-        self.no_inlet1_pressure = labeledEntry(self.myFrame, 1, 0, "NO inlet 1 Pressure (bar)", "500000", 10,
+
+        # Display pressure in Standard format (bar) but store in Expert format (Pa)
+        default_pressure_new = convert_old_to_new('pressure', "500000")  # 500000 Pa = 5 bar
+        self.no_inlet1_pressure = labeledEntry(self.myFrame, 1, 0, "NO inlet 1 Pressure (bar)", default_pressure_new,
+                                               10,
                                                self.auto_save_callback)
-        self.no_inlet2_pressure = labeledEntry(self.myFrame, 2, 0, "NO inlet 2 Pressure (bar)", "500000", 10,
+        self.no_inlet2_pressure = labeledEntry(self.myFrame, 2, 0, "NO inlet 2 Pressure (bar)", default_pressure_new,
+                                               10,
                                                self.auto_save_callback)
-        self.o2_inlet_pressure = labeledEntry(self.myFrame, 3, 0, "O2 inlet Pressure (bar)", "500000", 10,
+        self.o2_inlet_pressure = labeledEntry(self.myFrame, 3, 0, "O2 inlet Pressure (bar)", default_pressure_new, 10,
                                               self.auto_save_callback)
 
     def get_standard_values(self):
-        return {
-            'pressure': self.no_inlet1_pressure.get(),  # BOTTLE1 pressure
+        # Convert Standard (New) values to Expert (Old) for storage
+        pressure_new = self.no_inlet1_pressure.get()
+        bottle2_pressure_new = self.no_inlet2_pressure.get()
+        o2_pressure_new = self.o2_inlet_pressure.get()
+
+        pressure_old = convert_new_to_old('pressure', pressure_new)
+        bottle2_pressure_old = convert_new_to_old('bottle2_pressure', bottle2_pressure_new)
+        o2_pressure_old = convert_new_to_old('o2_pressure', o2_pressure_new)
+
+        values = {
+            'pressure': pressure_old,  # BOTTLE1 pressure
             'concentration': self.no_concentration.get(),  # BOTTLE1 concentration
-            'bottle2_pressure': self.no_inlet2_pressure.get(),  # BOTTLE2 pressure (will be mapped separately)
-            'o2_pressure': self.o2_inlet_pressure.get()  # O2PRESSURE pressure
+            'bottle2_pressure': bottle2_pressure_old,  # BOTTLE2 pressure (will be mapped separately)
+            'o2_pressure': o2_pressure_old  # O2PRESSURE pressure
         }
+        return values
 
     def read_from_standard_values(self, values):
         if 'pressure' in values:
-            self.no_inlet1_pressure.set(values['pressure'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['pressure']
+            new_value = convert_old_to_new('pressure', old_value)
+            self.no_inlet1_pressure.set(new_value)
         if 'concentration' in values:
             self.no_concentration.set(values['concentration'])
         if 'bottle2_pressure' in values:
-            self.no_inlet2_pressure.set(values['bottle2_pressure'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['bottle2_pressure']
+            new_value = convert_old_to_new('bottle2_pressure', old_value)
+            self.no_inlet2_pressure.set(new_value)
         if 'o2_pressure' in values:
-            self.o2_inlet_pressure.set(values['o2_pressure'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['o2_pressure']
+            new_value = convert_old_to_new('o2_pressure', old_value)
 
+            self.o2_inlet_pressure.set(new_value)
 
 class AnalyzerFrame:
     def __init__(self, frame, row_, col_, auto_save_callback=None):
@@ -404,35 +519,43 @@ class AnalyzerFrame:
         self.myFrame.grid(row=row_, column=col_, sticky="nsew", padx=5, pady=5)
         self.auto_save_callback = auto_save_callback
 
-        self.no_ppm = labeledEntry(self.myFrame, 0, 0, "NO (ppm)", "0", 10, self.auto_save_callback)
-        self.no2_ppm = labeledEntry(self.myFrame, 1, 0, "NO2 (ppm)", "1000", 10, self.auto_save_callback)
-        self.o2_percent = labeledEntry(self.myFrame, 2, 0, "O2 (%)", "21", 10, self.auto_save_callback)
+        # Display values in Standard format (New) but store in Expert format (Old)
+        default_no_new = convert_old_to_new('no', "0")  # 0 old = 0 new
+        default_no2_new = convert_old_to_new('no2', "1000")  # 1000 old = 1 new
+        default_o2_new = convert_old_to_new('o2', "2100")  # 2100 old = 21 new
+
+        self.no_ppm = labeledEntry(self.myFrame, 0, 0, "NO (ppm)", default_no_new, 10, self.auto_save_callback)
+        self.no2_ppm = labeledEntry(self.myFrame, 1, 0, "NO2 (ppm)", default_no2_new, 10, self.auto_save_callback)
+        self.o2_percent = labeledEntry(self.myFrame, 2, 0, "O2 (%)", default_o2_new, 10, self.auto_save_callback)
 
     def get_standard_values(self):
-        # Convert O2 percentage to expert format for consistency
-        try:
-            o2_expert_val = str(int(float(self.o2_percent.get()) * 285.7))
-        except:
-            o2_expert_val = "6000"
+        # Convert Standard (New) values to Expert (Old) for storage
+        no_old = convert_new_to_old('no', self.no_ppm.get())
+        no2_old = convert_new_to_old('no2', self.no2_ppm.get())
+        o2_old = convert_new_to_old('o2', self.o2_percent.get())
 
         return {
-            'no': self.no_ppm.get(),
-            'no2': self.no2_ppm.get(),
-            'o2': o2_expert_val
+            'no': no_old,
+            'no2': no2_old,
+            'o2': o2_old
         }
 
     def read_from_standard_values(self, values):
         if 'no' in values:
-            self.no_ppm.set(values['no'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['no']
+            new_value = convert_old_to_new('no', old_value)
+            self.no_ppm.set(new_value)
         if 'no2' in values:
-            self.no2_ppm.set(values['no2'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['no2']
+            new_value = convert_old_to_new('no2', old_value)
+            self.no2_ppm.set(new_value)
         if 'o2' in values:
-            # Convert back from expert format to percentage
-            try:
-                o2_percent = str(round(float(values['o2']) / 285.7, 1))
-                self.o2_percent.set(o2_percent)
-            except:
-                self.o2_percent.set(values['o2'])
+            # Convert Expert (Old) value to Standard (New) for display
+            old_value = values['o2']
+            new_value = convert_old_to_new('o2', old_value)
+            self.o2_percent.set(new_value)
 
 
 class FlowSensorFrame:
@@ -592,6 +715,7 @@ def dynamic_auto_save():
         return
 
     try:
+
         # Load mapping and template
         mapping = load_field_mapping()
         template_lines = load_template_lines()
@@ -602,15 +726,11 @@ def dynamic_auto_save():
         # Collect all standard values
         standard_values = data_collector.get_all_standard_values()
 
-        # Handle special cases (like BOTTLE2 from gas_inlets)
-        if 'bottle2_pressure' in standard_values:
-            # Create a separate entry for BOTTLE2
-            mapping['BOTTLE2'] = mapping.get('BOTTLE2', {})
-            mapping['BOTTLE2']['pressure'] = 2
-            standard_values['pressure_bottle2'] = standard_values['bottle2_pressure']  # Separate mapping
-
         # Process all lines
         processed_lines = processor.get_all_processed_lines(standard_values)
+
+        for line in processed_lines:
+            print(f"  {line}")
 
         # Save to versioned file
         dataFile = get_data_file_path()
@@ -618,10 +738,10 @@ def dynamic_auto_save():
             for line in processed_lines:
                 f.write(line + "\n")
 
-        print(f"Auto-saved to {dataFile}")
-
     except Exception as e:
         print("Error in dynamic auto-save:", str(e))
+        import traceback
+        traceback.print_exc()
 
 
 def load_existing_configuration():
@@ -638,7 +758,7 @@ def load_existing_configuration():
 
         with open(dataFile) as f:
             lines = f.readlines()
-            for line in lines:
+            for line_num, line in enumerate(lines, 1):
                 line = line.strip()
                 if not line:
                     continue
@@ -648,21 +768,30 @@ def load_existing_configuration():
                     continue
 
                 line_type = parts[0]
+
                 if line_type in mapping:
                     line_mapping = mapping[line_type]
                     for field_name, position in line_mapping.items():
+                        if field_name.startswith('_'):  # Skip metadata fields
+                            continue
                         if position < len(parts):
                             extracted_values[field_name] = parts[position]
+                            print(f"    Extracted {field_name} = {parts[position]} (position {position})")
+                        else:
+                            print(f"    WARNING: Position {position} not found for {field_name} in line: {line}")
+                else:
+                    print(f"  No mapping found for {line_type}")
 
         # Apply extracted values to frames
         for frame_name, frame_instance in data_collector.data.items():
             if hasattr(frame_instance, 'read_from_standard_values'):
+                print(f"\nApplying values to frame: {frame_name}")
                 frame_instance.read_from_standard_values(extracted_values)
 
-        print(f"Loaded configuration from {dataFile}")
-
     except Exception as e:
-        print("Error loading configuration:", str(e))
+        print(f"Error loading configuration: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 # Principal window

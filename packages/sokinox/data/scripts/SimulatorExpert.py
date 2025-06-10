@@ -143,7 +143,7 @@ class miscPressureFrame:
         if "ADMBAROPRESSURE " in line:
             self.admBaroPressure.set(line.split()[1])
 
-        if "O2Pressure " in line:
+        if "O2PRESSURE " in line:
             self.O2Pressure.set(line.split()[1])
 
 

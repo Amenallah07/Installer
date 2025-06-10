@@ -1,0 +1,189 @@
+{
+  "_comment": "Field mapping configuration for Standard mode -> Expert mode template integration",
+  "_description": "This file maps Standard mode fields to specific positions in Expert mode template lines",
+  "_version": "1.1",
+  "_how_to_extend": {
+    "for_new_versions": "Just add the template files (default_template-vX.X.dat) and this mapping will work automatically",
+    "for_new_fields": "Add new entries in the relevant line type section",
+    "position_index": "Positions are 0-based array indices in the space-separated line"
+  },
+  
+  "BOTTLE1": {
+    "_line_format": "BOTTLE1 <type> <pressure> <concentration>",
+    "pressure": 2,
+    "concentration": 3
+  },
+  
+  "BOTTLE2": {
+    "_line_format": "BOTTLE2 <type> <pressure> <concentration>",
+    "bottle2_pressure": 2
+  },
+  
+  "REGULATOR1": {
+    "_line_format": "REGULATOR1 <mode> <target_pressure> <pressure_drop_high> <pressure_drop_low>",
+    "_note": "No Standard mode fields override these - uses template defaults"
+  },
+  
+  "REGULATOR2": {
+    "_line_format": "REGULATOR2 <mode> <target_pressure> <pressure_drop_high> <pressure_drop_low>",
+    "_note": "No Standard mode fields override these - uses template defaults"
+  },
+  
+  "ADMBAROPRESSURE": {
+    "_line_format": "ADMBAROPRESSURE <pressure>",
+    "_note": "Uses template defaults"
+  },
+  
+  "O2PRESSURE": {
+    "_line_format": "O2PRESSURE <pressure>",
+    "o2_pressure": 1
+  },
+  
+  "ADM_MISC": {
+    "_line_format": "ADM_MISC <TCPU> <T1> <CPUVref> <backup_mode> <Plo3> <FlowSensorPressure> <MFMO2Flow>",
+    "backup_state": 4,
+    "backup_o2_flow": 7
+  },
+  
+  "ANALYZER": {
+    "_line_format": "ANALYZER <NO> <NO2> <O2> <Pa2> <GasVBat> <Vlow3Current> <PumpCurrent> <T2> <P3> <P4>",
+    "no": 1,
+    "no2": 2,
+    "o2": 3
+  },
+  
+  "POWER": {
+    "_line_format": "POWER <SysVoltage> <24VACDC> <18V> <12VUnreg> <12V> <5VC> <5V> <3V3> <CPUVref> <ChargeMode> <ChargeLevel> <RemainingCapacity> <FullChargeCapacity> <ManufacturingYear> <ManufacturingMonth> <ManufacturingDay> <FanSpeed>",
+    "mains_voltage": 1,
+    "battery_level": 11,
+    "manufacturing_year": 14,
+    "manufacturing_month": 15,
+    "manufacturing_day": 16
+  },
+  
+  "SERIAL": {
+    "_line_format": "SERIAL <Ser24V> <Ser12V> <Ser7V> <Ser5V> <Ser33VV> <SerVrefCPU>",
+    "_note": "Uses template defaults"
+  },
+  
+  "SERVICELEVEL": {
+    "_line_format": "SERVICELEVEL <level>",
+    "service_level": 1
+  },
+  
+  "VENTILATORFLOW": {
+    "_line_format": "VENTILATORFLOW <type> <filename>",
+    "ventilator_type": 1,
+    "filename": 2
+  },
+  
+  "MFC": {
+    "_line_format": "MFC <state> <verbose> <error_code> <boot_error_code>",
+    "_note": "v2.0 only - uses template defaults",
+    "_version_specific": "v2.0"
+  },
+  
+  "flowSensor": {
+    "_line_format": "flowSensor <sensor_type> <sensor_state> <verbose> <error_code>",
+    "sensor_type": 1
+  },
+  
+  "_unit_conversions": {
+    "_comment": "Unit conversions between Standard mode (New) and Expert mode (Old)",
+    "_formula_explanation": "New = Old * factor OR New = Old / factor",
+    "_storage_format": "Always store in Expert (Old) format",
+    
+    "backup_o2_flow": {
+      "_description": "MFMO2 flow / Backup O2 flow",
+      "_conversion": "New = Old * 1000",
+      "_example": "5000 mL/min (old) -> 5 L/min (new)",
+      "old_to_new_factor": 1000,
+      "new_to_old_factor": 0.001
+    },
+    
+    "pressure": {
+      "_description": "Bottle 1 pressure (bars vs Pa)",
+      "_conversion": "New = Old / 100000", 
+      "_example": "500000 Pa (old) -> 5 bar (new)",
+      "old_to_new_factor": 0.00001,
+      "new_to_old_factor": 100000
+    },
+    
+    "bottle2_pressure": {
+      "_description": "Bottle 2 pressure (bars vs Pa)",
+      "_conversion": "New = Old / 100000",
+      "_example": "500000 Pa (old) -> 5 bar (new)",
+      "old_to_new_factor": 0.00001,
+      "new_to_old_factor": 100000
+    },
+    
+    "o2_pressure": {
+      "_description": "O2 pressure (bars vs Pa)", 
+      "_conversion": "New = Old / 100000",
+      "_example": "500000 Pa (old) -> 5 bar (new)",
+      "old_to_new_factor": 0.00001,
+      "new_to_old_factor": 100000
+    },
+    
+    "no": {
+      "_description": "NO offset (ppm display vs internal)",
+      "_conversion": "New = Old / 1000",
+      "_example": "1000 (old) -> 1 ppm (new)",
+      "old_to_new_factor": 0.001,
+      "new_to_old_factor": 1000
+    },
+    
+    "no2": {
+      "_description": "NO2 (ppm display vs internal)",
+      "_conversion": "New = Old / 1000", 
+      "_example": "5000 (old) -> 5 ppm (new)",
+      "old_to_new_factor": 0.001,
+      "new_to_old_factor": 1000
+    },
+    
+    "o2": {
+      "_description": "O2 (% display vs internal)",
+      "_conversion": "New = Old / 100",
+      "_example": "2100 (old) -> 21% (new)",
+      "old_to_new_factor": 0.01,
+      "new_to_old_factor": 100
+    }
+  },
+
+  "_special_mappings": {
+    "_comment": "Special cases that need custom handling",
+    "bottle2_pressure_mapping": {
+      "_description": "BOTTLE2 pressure comes from gas_inlets.no_inlet2_pressure",
+      "_implementation": "Now handled normally through mapping - no special code needed"
+    }
+  },
+  
+  "_maintenance_guide": {
+    "adding_new_version": [
+      "1. Create new template file: default_template-vX.X.dat",
+      "2. No code changes needed - mapping will work automatically",
+      "3. Test with new version to ensure all fields map correctly"
+    ],
+    "adding_new_standard_field": [
+      "1. Add field to appropriate Standard frame's get_standard_values() method",
+      "2. Add mapping entry in this JSON file",
+      "3. Update read_from_standard_values() method if needed for loading"
+    ],
+    "modifying_expert_format": [
+      "1. Update template file",
+      "2. Update position indices in this mapping file",
+      "3. Update _line_format comments for documentation"
+    ],
+    "adding_new_unit_conversion": [
+      "1. Add conversion factors in _unit_conversions section",
+      "2. Use convert_old_to_new() and convert_new_to_old() in frame methods",
+      "3. Test conversion in both directions"
+    ],
+    "debugging_tips": [
+      "1. Check console output for detailed conversion logs",
+      "2. Verify field names match exactly between mapping and frame methods",
+      "3. Ensure position indices are correct (0-based)",
+      "4. Test both save and load operations"
+    ]
+  }
+}

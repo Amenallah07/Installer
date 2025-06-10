@@ -1,0 +1,49 @@
+# Sokinox Default Configuration Template - Version 2.0
+# This file contains default values for all Expert mode fields
+# Standard mode will override specific values based on standard_field_mapping.json
+# 
+# Format: Each line represents a configuration section with space-separated values
+# Lines starting with # are comments and will be ignored
+
+# Gas Bottles Configuration
+BOTTLE1 20 500000 450
+BOTTLE2 20 500000 450
+
+# Gas Regulators Configuration  
+REGULATOR1 M 500000 20000 1000
+REGULATOR2 M 500000 20000 1000
+
+# Atmospheric Pressure
+ADMBAROPRESSURE 101300
+
+# O2 Pressure (will be overridden by Standard mode)
+O2PRESSURE 500000
+
+# Administration Miscellaneous
+# Format: ADM_MISC <TCPU> <T1> <CPUVref> <backup_mode> <Plo3> <FlowSensorPressure> <MFMO2Flow>
+ADM_MISC 123 23 1300 0 0 0 5000
+
+# Analyzer Configuration
+# Format: ANALYZER <NO> <NO2> <O2> <Pa2> <GasVBat> <Vlow3Current> <PumpCurrent> <T2> <P3> <P4>
+ANALYZER 0 1000 2100 101300 5000 5000 10 10 -5800 -8500
+
+# Power System Configuration
+# Format: POWER <SysVoltage> <24VACDC> <18V> <12VUnreg> <12V> <5VC> <5V> <3V3> <CPUVref> <ChargeMode> <ChargeLevel> <RemainingCapacity> <FullChargeCapacity> <ManufacturingYear> <ManufacturingMonth> <ManufacturingDay> <FanSpeed>
+POWER 24000 24000 18000 12000 12000 5000 5000 3300 1300 1 95 17000 18000 2022 6 30 1600
+
+# Serial Interface Configuration
+SERIAL 24000 12000 7000 5000 3300 1300
+
+# Service Level (will be overridden by Standard mode)
+SERVICELEVEL 2
+
+# Ventilator Flow Configuration (will be overridden by Standard mode)
+VENTILATORFLOW 1 
+
+# MFC Configuration (v2.0 specific)
+# Format: MFC <state> <verbose> <error_code> <boot_error_code>
+MFC 0 0 0 0
+
+# Flow Sensor Configuration
+# Format: flowSensor <sensor_type> <sensor_state> <verbose> <error_code>
+flowSensor 3 0 0 0
