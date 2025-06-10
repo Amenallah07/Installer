@@ -13,15 +13,20 @@ from ConfigManager import get_config
 
 
 def onClearGUIStatus():
-    path = r"C:\Ona\var\persistent\SystemStatus.conf"
-    if os.path.exists(path):
-        os.remove(path)
+    """Clear GUI status file from user directory"""
+    user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox", "Ona", "var", "persistent")
+    status_file = os.path.join(user_data_dir, "SystemStatus.conf")
+
+    if os.path.exists(status_file):
+        os.remove(status_file)
+        print(f"Cleared GUI status: {status_file}")
+    else:
+        print(f"No GUI status file found at: {status_file}")
 
 
 # Création des dossiers requis
-config_dir = r"C:\Ona\var\persistent"
-if not os.path.exists(config_dir):
-    os.makedirs(config_dir)
+user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox", "Ona", "var", "persistent")
+os.makedirs(user_data_dir, exist_ok=True)
 
 # load configuration
 config = get_config()
@@ -620,7 +625,11 @@ tabControl.add(tab4, text='POW')
 tabControl.add(tab5, text='GUI')
 
 version = config.get_version()
-dataFile2 = fr"C:\ONASimFile2-{version}.dat"
+user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox")
+# Create directory if it doesn't exist
+os.makedirs(user_data_dir, exist_ok=True)
+
+dataFile2 =  os.path.join(user_data_dir, f"ONASimFile2-{version}.dat")
 
 labelFrameAA = LabelFrame(tab1, text="Gas Configuration")
 labelFrameAA.grid(row=0, column=0)

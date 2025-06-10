@@ -15,23 +15,34 @@ from ConfigManager import get_config
 
 
 def onClearGUIStatus():
-    path = r"C:\Ona\var\persistent\SystemStatus.conf"
-    if os.path.exists(path):
-        os.remove(path)
+    """Clear GUI status file from user directory"""
+    user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox", "Ona", "var", "persistent")
+    status_file = os.path.join(user_data_dir, "SystemStatus.conf")
 
+    if os.path.exists(status_file):
+        os.remove(status_file)
+        print(f"Cleared GUI status: {status_file}")
+    else:
+        print(f"No GUI status file found at: {status_file}")
 
-config_dir = r"C:\Ona\var\persistent"
-if not os.path.exists(config_dir):
-    os.makedirs(config_dir)
+# Create user data directory for configuration
+user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox", "Ona", "var", "persistent")
+os.makedirs(user_data_dir, exist_ok=True)
 
 # load configuration
 config = get_config()
 
 
 def get_data_file_path():
-    """Get the versioned data file path"""
+    """Get the versioned data file path in user directory"""
     version = config.get_version()
-    return fr"C:\ONASimFile2-{version}.dat"
+
+    user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox")
+
+    # Create directory if it doesn't exist
+    os.makedirs(user_data_dir, exist_ok=True)
+
+    return os.path.join(user_data_dir, f"ONASimFile2-{version}.dat")
 
 
 def get_template_file_path():
@@ -160,7 +171,9 @@ def convert_old_to_new(field_name, old_value):
 
         if field_name in conversions:
             factor = conversions[field_name].get('old_to_new_factor', 1)
-            return str(float(old_value) * factor)
+            result = int(old_value) * factor
+            return str(int(result))
+
         return str(old_value)
     except:
         return str(old_value)
@@ -174,7 +187,9 @@ def convert_new_to_old(field_name, new_value):
 
         if field_name in conversions:
             factor = conversions[field_name].get('new_to_old_factor', 1)
-            return str(float(new_value) * factor)
+            result = int(new_value) * factor
+            return str(int(result))
+
         return str(new_value)
     except:
         return str(new_value)
@@ -194,7 +209,6 @@ def load_template_lines():
                         parts = line.split()
                         if parts:
                             template_lines[parts[0]] = line
-            print(f"Loaded template from {template_file}")
         else:
             print(f"Template file not found: {template_file}")
     except Exception as e:
@@ -513,6 +527,7 @@ class GasInletsFrame:
 
             self.o2_inlet_pressure.set(new_value)
 
+
 class AnalyzerFrame:
     def __init__(self, frame, row_, col_, auto_save_callback=None):
         self.myFrame = LabelFrame(frame, text="Analyzer", bg='lightgrey', fg='black', font=('Arial', 10, 'bold'))
@@ -776,7 +791,6 @@ def load_existing_configuration():
                             continue
                         if position < len(parts):
                             extracted_values[field_name] = parts[position]
-                            print(f"    Extracted {field_name} = {parts[position]} (position {position})")
                         else:
                             print(f"    WARNING: Position {position} not found for {field_name} in line: {line}")
                 else:
@@ -785,7 +799,6 @@ def load_existing_configuration():
         # Apply extracted values to frames
         for frame_name, frame_instance in data_collector.data.items():
             if hasattr(frame_instance, 'read_from_standard_values'):
-                print(f"\nApplying values to frame: {frame_name}")
                 frame_instance.read_from_standard_values(extracted_values)
 
     except Exception as e:

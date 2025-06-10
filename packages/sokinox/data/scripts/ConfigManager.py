@@ -11,7 +11,8 @@ import json
 
 class ConfigManager:
     def __init__(self):
-        self.config_dir = r"C:\Ona\var\persistent"
+        user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox", "Ona", "var", "persistent")
+        self.config_dir = user_data_dir
         self.config_file = os.path.join(self.config_dir, "chocolat_config.json")
         self.config = self.load_config()
 
