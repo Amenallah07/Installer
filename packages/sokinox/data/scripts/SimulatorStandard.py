@@ -25,6 +25,7 @@ def onClearGUIStatus():
     else:
         print(f"No GUI status file found at: {status_file}")
 
+
 # Create user data directory for configuration
 user_data_dir = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Sokinox", "Ona", "var", "persistent")
 os.makedirs(user_data_dir, exist_ok=True)
@@ -52,7 +53,7 @@ def get_template_file_path():
 
     if version == "v2.0":
         template_file = os.path.join(script_dir, "default_template-v2.dat")
-    else:  # v1.6.1 and v1.6.3
+    else:  # v1.6.2 and v1.6.3
         template_file = os.path.join(script_dir, "default_template-v1.dat")
 
     return template_file
@@ -92,6 +93,7 @@ def load_field_mapping():
         },
         "ADM_MISC": {
             "backup_state": 4,
+            "flow_sensor_v1": 5,
             "backup_o2_flow": 7
         },
         "flowSensor": {
@@ -280,11 +282,13 @@ class TemplateLineProcessor:
                 parts[position] = new_value
 
         result = ' '.join(parts)
+        print(f"    Final: {result}")
         return result
 
     def get_all_processed_lines(self, standard_values):
         """Get all processed lines in correct order"""
         processed_lines = []
+        version = config.get_version()
 
         # Define the order of lines (can be moved to config file if needed)
         line_order = [
@@ -295,6 +299,10 @@ class TemplateLineProcessor:
         ]
 
         for line_type in line_order:
+            # Skip SERVICELEVEL for v1.6.2
+            if line_type == "SERVICELEVEL" and version == "v1.6.2":
+                continue
+
             processed_line = self.process_line(line_type, standard_values)
             if processed_line:
                 processed_lines.append(processed_line)
@@ -582,36 +590,54 @@ class FlowSensorFrame:
         self.sensor_type = IntVar()
         self.sensor_type.set(3)
 
-        rb1 = Radiobutton(self.myFrame, text="High Flow", variable=self.sensor_type, value=3,
+        rb3 = Radiobutton(self.myFrame, text="No Sensor", variable=self.sensor_type, value=0,
                           bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
-        rb1.grid(row=0, column=0, sticky="w", padx=5, pady=2)
-
-        rb2 = Radiobutton(self.myFrame, text="Low Flow", variable=self.sensor_type, value=2,
-                          bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
-        rb2.grid(row=1, column=0, sticky="w", padx=5, pady=2)
-
-        if config.get_version() == "v2.0":
-            rb3 = Radiobutton(self.myFrame, text="No Cable", variable=self.sensor_type, value=1,
-                              bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
-            rb3.grid(row=2, column=0, sticky="w", padx=5, pady=2)
-
-        rb4 = Radiobutton(self.myFrame, text="No Sensor", variable=self.sensor_type, value=0,
-                          bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
-        rb4.grid(row=3, column=0, sticky="w", padx=5, pady=2)
+        rb3.grid(row=2, column=0, sticky="w", padx=5, pady=2)
 
         if config.get_version() == "v2.0":
             rb5 = Radiobutton(self.myFrame, text="Error Sensor", variable=self.sensor_type, value=4,
                               bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
             rb5.grid(row=4, column=0, sticky="w", padx=5, pady=2)
 
+            rb1 = Radiobutton(self.myFrame, text="High Flow", variable=self.sensor_type, value=3,
+                              bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
+            rb1.grid(row=0, column=0, sticky="w", padx=5, pady=2)
+
+            rb2 = Radiobutton(self.myFrame, text="Low Flow", variable=self.sensor_type, value=2,
+                              bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
+            rb2.grid(row=1, column=0, sticky="w", padx=5, pady=2)
+
+            rb4 = Radiobutton(self.myFrame, text="No Cable", variable=self.sensor_type, value=1,
+                              bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
+            rb4.grid(row=3, column=0, sticky="w", padx=5, pady=2)
+        else:
+            rb1 = Radiobutton(self.myFrame, text="High Flow", variable=self.sensor_type, value=2,
+                              bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
+            rb1.grid(row=0, column=0, sticky="w", padx=5, pady=2)
+
+            rb2 = Radiobutton(self.myFrame, text="Low Flow", variable=self.sensor_type, value=1,
+                              bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
+            rb2.grid(row=1, column=0, sticky="w", padx=5, pady=2)
+
     def get_standard_values(self):
-        return {
-            'sensor_type': str(self.sensor_type.get())
-        }
+        version = config.get_version()
+        values = {}
+
+        if version == "v2.0":
+            values['sensor_type'] = str(self.sensor_type.get())
+        else:
+            # For v1.6.2 and v1.6.3, store in ADM_MISC position 5
+            values['flow_sensor_v1'] = str(self.sensor_type.get())
+
+        return values
 
     def read_from_standard_values(self, values):
-        if 'sensor_type' in values:
+        version = config.get_version()
+
+        if version == "v2.0" and 'sensor_type' in values:
             self.sensor_type.set(int(values['sensor_type']))
+        elif version in ["v1.6.2", "v1.6.3"] and 'flow_sensor_v1' in values:
+            self.sensor_type.set(int(values['flow_sensor_v1']))
 
 
 class VentilatorFrame:
@@ -726,6 +752,7 @@ class ServiceFrame:
 
 def dynamic_auto_save():
     """Dynamic auto-save using template processing"""
+    print("=== DEBUG AUTO-SAVE START ===")
     if loading_from_file:
         return
 
@@ -740,6 +767,10 @@ def dynamic_auto_save():
 
         # Collect all standard values
         standard_values = data_collector.get_all_standard_values()
+
+        print("Collected standard values:")
+        for key, value in standard_values.items():
+            print(f"  {key} = {value}")
 
         # Process all lines
         processed_lines = processor.get_all_processed_lines(standard_values)
@@ -847,7 +878,12 @@ gas_inlets = GasInletsFrame(body_frame, 1, 0, dynamic_auto_save)
 analyzer = AnalyzerFrame(body_frame, 1, 1, dynamic_auto_save)
 flow_sensor = FlowSensorFrame(body_frame, 2, 0, dynamic_auto_save)
 ventilator = VentilatorFrame(body_frame, 2, 1, dynamic_auto_save)
-service_level = ServiceFrame(body_frame, 3, 0, dynamic_auto_save)
+
+# Create ServiceFrame only for v2.0 and v1.6.3
+version = config.get_version()
+if version in ["v2.0", "v1.6.3"]:
+    service_level = ServiceFrame(body_frame, 3, 0, dynamic_auto_save)
+    data_collector.register_frame('service_level', service_level)
 
 # Register all frames with the data collector
 data_collector.register_frame('user_actions', user_actions)
@@ -856,7 +892,6 @@ data_collector.register_frame('gas_inlets', gas_inlets)
 data_collector.register_frame('analyzer', analyzer)
 data_collector.register_frame('flow_sensor', flow_sensor)
 data_collector.register_frame('ventilator', ventilator)
-data_collector.register_frame('service_level', service_level)
 
 # Footer
 footer_frame = Frame(root, bg='black')
