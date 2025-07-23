@@ -2,6 +2,7 @@
 REM Script to configure environment variables for UDP CAN communication
 REM Windows equivalent of choco_env.sh script, I am not sure if its useful or not
 
+SET MCC_CAN_DEV_1=vcan0
 SET MCC_CAN_DEV_2=vcan0
 SET MCC_CAN_DEV_3=vcan0
 SET MCC_CAN_DEV_4=vcan0

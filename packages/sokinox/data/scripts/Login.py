@@ -18,6 +18,7 @@ import psutil
 # load configuration
 config = get_config()
 
+
 class ChocolatLogin:
     def __init__(self):
         self.root = tk.Tk()
@@ -86,7 +87,7 @@ class ChocolatLogin:
         password_entry.grid(row=1, column=1, padx=5, pady=5)
 
         login_button = Button(login_frame, text="Connect", command=self.login,
-                             bg="#4CAF50", fg="white", font=("Arial", 10, "bold"), width=15)
+                              bg="#4CAF50", fg="white", font=("Arial", 10, "bold"), width=15)
         login_button.grid(row=2, column=0, columnspan=2, pady=15)
 
         # Bind Enter key
@@ -104,7 +105,7 @@ class ChocolatLogin:
         self.root.geometry('500x400')
         self.center_window()
 
-        # The “Standard” user profile is selected by default
+        # The "Standard" user profile is selected by default
         self.profile_var = StringVar(value="Standard")
 
         # Title
@@ -121,29 +122,29 @@ class ChocolatLogin:
         versions = ["v2.0", "v1.6.3", "v1.6.2"]
         for version in versions:
             rb = Radiobutton(version_frame, text=version, variable=self.version_var,
-                           value=version, font=("Arial", 10))
+                             value=version, font=("Arial", 10))
             rb.pack(anchor="w", padx=10, pady=2)
 
         profile_frame = LabelFrame(main_frame, text="User profile", font=("Arial", 10, "bold"))
         profile_frame.pack(fill="x", padx=20, pady=10)
 
         rb_standard = Radiobutton(profile_frame, text="Standard", variable=self.profile_var,
-                                value="Standard", font=("Arial", 10))
+                                  value="Standard", font=("Arial", 10))
         rb_standard.pack(anchor="w", padx=10, pady=2)
 
         rb_expert = Radiobutton(profile_frame, text="Expert", variable=self.profile_var,
-                              value="Expert", font=("Arial", 10))
+                                value="Expert", font=("Arial", 10))
         rb_expert.pack(anchor="w", padx=10, pady=2)
 
         button_frame = Frame(main_frame)
         button_frame.pack(pady=20)
 
         start_button = Button(button_frame, text="Start", command=self.start_application,
-                            bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), width=12)
+                              bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), width=12)
         start_button.pack(side="left", padx=10)
 
         quit_button = Button(button_frame, text="Exit", command=self.exit_application,
-                           bg="#f44336", fg="white", font=("Arial", 12, "bold"), width=12)
+                             bg="#f44336", fg="white", font=("Arial", 12, "bold"), width=12)
         quit_button.pack(side="left", padx=10)
 
     def login(self):
@@ -159,7 +160,7 @@ class ChocolatLogin:
             self.create_config_interface()
         else:
             messagebox.showerror("Authentication error",
-                               "Authentication error, please retry !")
+                                 "Authentication error, please retry !")
             self.password_var.set("")
 
     def kill_python_script(self, script_path):
@@ -185,10 +186,11 @@ class ChocolatLogin:
 
     def start_application(self):
         """start application"""
-        config.save_config(version=self.version_var.get(), profile=self.profile_var.get())
+        version = self.version_var.get()
+        profile = self.profile_var.get()
 
-        version = config.get_version()
-        profile = config.get_profile()
+        # Save configuration
+        config.save_config(version=version, profile=profile)
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
         base_dir = os.path.dirname(script_dir)
@@ -268,6 +270,7 @@ class ChocolatLogin:
     def run(self):
         """Launch application"""
         self.root.mainloop()
+
 
 if __name__ == "__main__":
     app = ChocolatLogin()
