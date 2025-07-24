@@ -19,6 +19,30 @@ import psutil
 config = get_config()
 
 
+def create_systemversion_file(version):
+    """Create or update systemversion file with the selected version"""
+    try:
+        # Get the directory where the script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Navigate to bin directory
+        bin_dir = os.path.join(script_dir, "..", "bin")
+
+        # Create bin directory if it doesn't exist
+        os.makedirs(bin_dir, exist_ok=True)
+
+        # Path to systemversion file
+        systemversion_file = os.path.join(bin_dir, "systemversion")
+
+        # Write version to file
+        with open(systemversion_file, 'w') as f:
+            f.write(version)
+
+        print(f"Created/Updated systemversion file: {systemversion_file} with version: {version}")
+
+    except Exception as e:
+        print(f"Error creating systemversion file: {e}")
+
+
 class ChocolatLogin:
     def __init__(self):
         self.root = tk.Tk()
@@ -192,6 +216,9 @@ class ChocolatLogin:
         # Save configuration
         config.save_config(version=version, profile=profile)
 
+        # Create/update systemversion file
+        create_systemversion_file(version)
+
         script_dir = os.path.dirname(os.path.abspath(__file__))
         base_dir = os.path.dirname(script_dir)
 
@@ -205,7 +232,11 @@ class ChocolatLogin:
             self.kill_all_apps()
 
             if os.path.exists(simulator_script):
-                subprocess.Popen([sys.executable, simulator_script])
+                # Launch without console using pythonw and CREATE_NO_WINDOW flag
+                CREATE_NO_WINDOW = 0x08000000
+                pythonw_path = sys.executable.replace('python.exe', 'pythonw.exe')
+                subprocess.Popen([pythonw_path, simulator_script],
+                                 creationflags=CREATE_NO_WINDOW)
             else:
                 return
 
@@ -219,6 +250,7 @@ class ChocolatLogin:
         bin_dir = os.path.join(base_dir, "bin")
 
         CREATE_NEW_CONSOLE = 0x00000010
+        CREATE_NO_WINDOW = 0x08000000
 
         try:
             simulator_exe = os.path.join(bin_dir, f"simulator-{version}.exe")
@@ -227,13 +259,13 @@ class ChocolatLogin:
             launched = False
 
             if os.path.exists(simulator_exe):
-                subprocess.Popen([simulator_exe], creationflags=CREATE_NEW_CONSOLE)
+                subprocess.Popen([simulator_exe], creationflags=CREATE_NO_WINDOW)
                 launched = True
             else:
                 messagebox.showerror("ERROR", f"Missing file:\n- {simulator_exe}")
 
             if os.path.exists(panel_exe):
-                subprocess.Popen([panel_exe], creationflags=CREATE_NEW_CONSOLE)
+                subprocess.Popen([panel_exe], creationflags=CREATE_NO_WINDOW)
                 launched = True
             else:
                 messagebox.showerror("ERROR", f"Missing file:\n- {panel_exe}")

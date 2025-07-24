@@ -42,7 +42,7 @@
   "ADM_MISC": {
     "_line_format": "ADM_MISC <TCPU> <T1> <CPUVref> <backup_mode> <Plo3> <FlowSensorPressure> <MFMO2Flow>",
     "backup_state": 4,
-	"flow_sensor_v1",5,
+	"flow_sensor_v1": 5,
     "backup_o2_flow": 6
   },
   
