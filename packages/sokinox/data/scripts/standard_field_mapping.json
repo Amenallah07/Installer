@@ -80,8 +80,8 @@
   
   "MFC": {
     "_line_format": "MFC <state> <verbose> <error_code> <boot_error_code>",
-    "_note": "v2.0 only - uses template defaults",
-    "_version_specific": "v2.0"
+    "_note": "v2.0.1 only - uses template defaults",
+    "_version_specific": "v2.0.1"
   },
   
   "flowSensor": {

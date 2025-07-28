@@ -51,7 +51,7 @@ def get_template_file_path():
     version = config.get_version()
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    if version == "v2.0":
+    if version == "v2.0.1":
         template_file = os.path.join(script_dir, "default_template-v2.dat")
     else:  # v1.6.2 and v1.6.3
         template_file = os.path.join(script_dir, "default_template-v1.dat")
@@ -407,7 +407,7 @@ class UserActionsFrame:
         self.backup_switch.grid(row=2, column=1, sticky="w", padx=5, pady=2)
 
         # Backup O2 flow
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             # Display in Standard format (New) but store in Expert format (Old)
             default_new_value = convert_old_to_new('backup_o2_flow', "5000")  # 5000 old = 5 new
             self.backup_o2_flow = labeledEntry(self.myFrame, 3, 0, "Backup O2 flow L/min", default_new_value, 8,
@@ -421,7 +421,7 @@ class UserActionsFrame:
             'backup_state': "1" if self.backup_switch_state else "0"
         }
 
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             # Convert Standard (New) value to Expert (Old) for storage
             new_value = self.backup_o2_flow.get()
             old_value = convert_new_to_old('backup_o2_flow', new_value)
@@ -444,7 +444,7 @@ class UserActionsFrame:
             self.backup_switch.state = self.backup_switch_state
             self.backup_switch.draw()
 
-        if config.get_version() == "v2.0" and 'backup_o2_flow' in values:
+        if config.get_version() == "v2.0.1" and 'backup_o2_flow' in values:
             # Convert Expert (Old) value to Standard (New) for display
             old_value = values['backup_o2_flow']
             new_value = convert_old_to_new('backup_o2_flow', old_value)
@@ -594,7 +594,7 @@ class FlowSensorFrame:
                           bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
         rb3.grid(row=2, column=0, sticky="w", padx=5, pady=2)
 
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             rb5 = Radiobutton(self.myFrame, text="Error Sensor", variable=self.sensor_type, value=4,
                               bg='lightgrey', fg='black', selectcolor='white', command=self.auto_save_callback)
             rb5.grid(row=4, column=0, sticky="w", padx=5, pady=2)
@@ -623,7 +623,7 @@ class FlowSensorFrame:
         version = config.get_version()
         values = {}
 
-        if version == "v2.0":
+        if version == "v2.0.1":
             values['sensor_type'] = str(self.sensor_type.get())
         else:
             # For v1.6.2 and v1.6.3, store in ADM_MISC position 5
@@ -634,7 +634,7 @@ class FlowSensorFrame:
     def read_from_standard_values(self, values):
         version = config.get_version()
 
-        if version == "v2.0" and 'sensor_type' in values:
+        if version == "v2.0.1" and 'sensor_type' in values:
             self.sensor_type.set(int(values['sensor_type']))
         elif version in ["v1.6.2", "v1.6.3"] and 'flow_sensor_v1' in values:
             self.sensor_type.set(int(values['flow_sensor_v1']))
@@ -879,9 +879,9 @@ analyzer = AnalyzerFrame(body_frame, 1, 1, dynamic_auto_save)
 flow_sensor = FlowSensorFrame(body_frame, 2, 0, dynamic_auto_save)
 ventilator = VentilatorFrame(body_frame, 2, 1, dynamic_auto_save)
 
-# Create ServiceFrame only for v2.0 and v1.6.3
+# Create ServiceFrame only for v2.0.1 and v1.6.3
 version = config.get_version()
-if version in ["v2.0", "v1.6.3"]:
+if version in ["v2.0.1", "v1.6.3"]:
     service_level = ServiceFrame(body_frame, 3, 0, dynamic_auto_save)
     data_collector.register_frame('service_level', service_level)
 

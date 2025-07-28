@@ -222,7 +222,7 @@ class admMiscFrame:
         self.CPUVref = labeledEntry(myFrame, 2, 0, "CPUVref", "1300")
         self.Plo3 = labeledEntry(myFrame, 3, 0, "Plo3", "0")
         self.FlowSensorPressure = labeledEntry(myFrame, 4, 0, "Flow sensor pressure", "0")
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             self.MFMO2Flow = labeledEntry(myFrame, 5, 0, "MFMO2 flow (ml/min)", "0")
 
         self.backup = IntVar()
@@ -241,7 +241,7 @@ class admMiscFrame:
         file.write(" ")
         file.write(str(self.FlowSensorPressure.get()))
         file.write(" ")
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             file.write(str(self.MFMO2Flow.get()))
         file.write("\n")
 
@@ -253,7 +253,7 @@ class admMiscFrame:
             self.backup.set(line.split()[4])
             self.Plo3.set(line.split()[5])
             self.FlowSensorPressure.set(line.split()[6])
-            if config.get_version() == "v2.0":
+            if config.get_version() == "v2.0.1":
                 self.MFMO2Flow.set(line.split()[7])
 
 class MFCFrame:
@@ -266,7 +266,7 @@ class MFCFrame:
         bottomFrame = Frame(myFrame)
         bottomFrame.grid(row=1, column=0)
 
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             label = Label(topFrame, text="Status:")
             label.pack(anchor=W)
             self.mfcState = IntVar()
@@ -305,7 +305,7 @@ class MFCFrame:
             self.verboseMFC.set(0)
 
     def putOnFile(self, file):
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             file.write("MFC ")
             file.write(str(self.mfcState.get()))
             file.write(" ")
@@ -320,7 +320,7 @@ class MFCFrame:
         if "MFC" in line:
             self.mfcState.set(line.split()[1])
             self.verboseMFC.set(line.split()[2])
-            if config.get_version() == "v2.0":
+            if config.get_version() == "v2.0.1":
                 self.mfcStateErrorCode.set(line.split()[3])
                 self.mfcStateBootErrorCode.set(line.split()[4])
 
@@ -340,14 +340,14 @@ class FlowSensorFrame:
         self.flowSensorLowFlow = Radiobutton(flowSensorTypeFrame, text="Low Flow", value=2, variable=self.flowSensor)
         self.flowSensorLowFlow.pack(anchor=W)
 
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             self.flowSensorNoCable = Radiobutton(flowSensorTypeFrame, text="No cable", value=1, variable=self.flowSensor)
             self.flowSensorNoCable.pack(anchor=W)
 
         self.flowSensorNoSensor = Radiobutton(flowSensorTypeFrame, text="No sensor", value=0, variable=self.flowSensor)
         self.flowSensorNoSensor.pack(anchor=W)
 
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             self.flowSensorErrorSensor = Radiobutton(flowSensorTypeFrame, text="Error Sensor", value=4,
                                                  variable=self.flowSensor)
             self.flowSensorErrorSensor.pack(anchor=W)
@@ -360,7 +360,7 @@ class FlowSensorFrame:
         bottomFrame = Frame(flowSensorStatusFrame)
         bottomFrame.grid(row=1, column=0)
 
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             self.flowSensorState = IntVar()
             self.flowSensorState.set(0)
             self.flowSensorStateWorking = Radiobutton(topFrame, text="Working", value=0, variable=self.flowSensorState)
@@ -401,7 +401,7 @@ class FlowSensorFrame:
         file.write(" ")
         file.write(str(self.verboseFlowSensor.get()))
         file.write(" ")
-        if config.get_version() == "v2.0":
+        if config.get_version() == "v2.0.1":
             file.write(str(self.flowSensorStateErrorCode.get()))
         file.write("\n")
 
@@ -410,7 +410,7 @@ class FlowSensorFrame:
             self.flowSensor.set(line.split()[1])
             self.flowSensorState.set(line.split()[2])
             self.verboseFlowSensor.set(line.split()[3])
-            if config.get_version() == "v2.0":
+            if config.get_version() == "v2.0.1":
                 self.flowSensorStateErrorCode.set(line.split()[4])
 
 

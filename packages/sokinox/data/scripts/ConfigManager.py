@@ -19,7 +19,7 @@ class ConfigManager:
     def load_config(self):
         """Load configuration"""
         default_config = {
-            "version": "v2.0",
+            "version": "v2.0.1",
             "profile": "Standard",
             "last_login": False
         }
@@ -38,7 +38,7 @@ class ConfigManager:
 
     def get_version(self):
         """Get selected version"""
-        return self.config.get("version", "v2.0")
+        return self.config.get("version", "v2.0.1")
 
     def get_profile(self):
         """Get selected profile"""

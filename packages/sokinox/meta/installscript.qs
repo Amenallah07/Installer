@@ -3,18 +3,18 @@ function Component() {}
 Component.prototype.createOperations = function()
 {
     try {
-        
-	component.createOperations();
+        component.createOperations();
 
         if (systemInfo.productType === "windows") {
-            // Check if Python is installed, if not install it
-            var pythonInstaller = "@TargetDir@/bin/python-3.13.3-amd64.exe";
-            component.addOperation("Execute", "python", "--version", "UNDOEXECUTE", "echo", "Python check");
-            component.addOperation("Execute", "{0,1}", "cmd", "/c", "python --version || \"" + pythonInstaller + "\" /quiet InstallAllUsers=1 PrependPath=1");
+            // Installer Python de manière silencieuse (même s'il existe déjà)
+            // L'installateur Python détecte automatiquement s'il est déjà installé
+            component.addOperation("Execute", "{0,1}",
+                "@TargetDir@/python-3.13.3-amd64.exe",
+                "/quiet", "InstallAllUsers=1", "PrependPath=1");
 
             // Start menu shortcut
-            component.addOperation("CreateShortcut", 
-                "@TargetDir@/chocolat.bat", 
+            component.addOperation("CreateShortcut",
+                "@TargetDir@/chocolat.bat",
                 "@StartMenuDir@/Sokinox Simulator.lnk",
                 "workingDirectory=@TargetDir@",
                 "iconPath=@TargetDir@/icons/icon.ico",
@@ -22,18 +22,52 @@ Component.prototype.createOperations = function()
             );
 
             // Desktop shortcut
-            component.addOperation("CreateShortcut", 
-                "@TargetDir@/chocolat.bat", 
+            component.addOperation("CreateShortcut",
+                "@TargetDir@/chocolat.bat",
                 "@DesktopDir@/Sokinox Simulator.lnk",
                 "workingDirectory=@TargetDir@",
                 "iconPath=@TargetDir@/icons/icon.ico",
                 "iconId=0"
             );
 
-            // Customized directories
-            component.addOperation("Mkdir", "C:/Ona");
-            component.addOperation("Mkdir", "C:/Ona/var");
-            component.addOperation("Mkdir", "C:/Ona/var/persistent");
+            // Améliorer l'enregistrement dans le registre Windows
+            var registryKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{" + installer.value("ProductUUID") + "}";
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "DisplayName", "Sokinox Simulator");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "DisplayVersion", "@Version@");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "Publisher", "InoSystemes");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "InstallLocation", "@TargetDir@");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "UninstallString", "\"@TargetDir@/@MaintenanceToolName@.exe\"");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "QuietUninstallString", "\"@TargetDir@/@MaintenanceToolName@.exe\" --script uninstall.qs");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "DisplayIcon", "@TargetDir@/icons/icon.ico");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "NoModify", "1");
+
+            component.addOperation("GlobalConfig",
+                registryKey,
+                "NoRepair", "1");
         }
     } catch (e) {
         console.log(e);

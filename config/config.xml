@@ -5,7 +5,7 @@
     <Title>Sokinox Simulator Installer</Title>
     <Publisher>InoSystemes</Publisher>
     <StartMenuDir>sokinox</StartMenuDir>
-    <TargetDir>@HomeDir@/AppData/Local/SokinoxApp</TargetDir>
+    <TargetDir>@ApplicationsDirX86@/Sokinox</TargetDir>
     <MaintenanceToolName>SokinoxMaintenanceTool</MaintenanceToolName>
     <AllowNonAsciiCharacters>true</AllowNonAsciiCharacters>
     <AllowSpaceInPath>true</AllowSpaceInPath>

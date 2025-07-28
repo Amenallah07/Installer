@@ -143,7 +143,7 @@ class ChocolatLogin:
         version_frame = LabelFrame(main_frame, text="Software version", font=("Arial", 10, "bold"))
         version_frame.pack(fill="x", padx=20, pady=10)
 
-        versions = ["v2.0", "v1.6.3", "v1.6.2"]
+        versions = ["v2.0.1", "v1.6.3", "v1.6.2"]
         for version in versions:
             rb = Radiobutton(version_frame, text=version, variable=self.version_var,
                              value=version, font=("Arial", 10))
@@ -286,7 +286,7 @@ class ChocolatLogin:
         self.kill_existing_processes([
             "simulator-v1.6.2.exe", "chocolatpanel-v1.6.2_release.exe",
             "simulator-v1.6.3.exe", "chocolatpanel-v1.6.3_release.exe",
-            "simulator-v2.0.exe", "chocolatpanel-v2.0_release.exe"
+            "simulator-v2.0.1.exe", "chocolatpanel-v2.0.1_release.exe"
         ])
 
     def exit_application(self):
