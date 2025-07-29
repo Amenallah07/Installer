@@ -18,7 +18,7 @@ if %ERRORLEVEL% NEQ 0 (
 ) 
 
 REM Launch Login page
-pythonw "scripts\Login.pyw"
+start /B pythonw "scripts\Login.pyw"
 
 echo The Sokinox Simulator has been launched.
 echo You can close this window.
