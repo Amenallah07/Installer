@@ -14,6 +14,7 @@ import json
 import subprocess
 from ConfigManager import get_config
 import psutil
+import atexit
 
 # load configuration
 config = get_config()
@@ -58,6 +59,9 @@ class ChocolatLogin:
         self.root.geometry('400x300')
         self.root.resizable(False, False)
 
+        # Gérer la fermeture par X
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
         self.center_window()
 
         # Variables
@@ -66,7 +70,23 @@ class ChocolatLogin:
         self.version_var = StringVar(value=config.get_version())
         self.profile_var = StringVar(value=config.get_profile())
 
+        # Enregistrer cleanup à la fermeture du programme
+        atexit.register(self.cleanup_on_exit)
+
         self.create_login_interface()
+
+    # Gérer la fermeture par X
+    def on_closing(self):
+        """Méthode appelée quand l'utilisateur clique sur X"""
+        self.exit_application()
+
+    # Cleanup automatique
+    def cleanup_on_exit(self):
+        """Cleanup automatique en cas de fermeture inattendue"""
+        try:
+            self.kill_all_apps()
+        except:
+            pass
 
     def center_window(self):
         """Center window"""
@@ -128,6 +148,9 @@ class ChocolatLogin:
 
         self.root.geometry('500x400')
         self.center_window()
+
+        # Re-configurer le protocol après avoir vidé la fenêtre
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # The "Standard" user profile is selected by default
         self.profile_var = StringVar(value="Standard")
@@ -238,6 +261,7 @@ class ChocolatLogin:
                 subprocess.Popen([pythonw_path, simulator_script],
                                  creationflags=CREATE_NO_WINDOW)
             else:
+                messagebox.showerror("Error", f"Script not found: {simulator_script}")
                 return
 
             self.root.after(1000, lambda: self.launch_executables(version, base_dir))
@@ -291,7 +315,6 @@ class ChocolatLogin:
 
     def exit_application(self):
         """Terminate all launched processes and exit the app."""
-        import sys
 
         self.kill_all_apps()
 
