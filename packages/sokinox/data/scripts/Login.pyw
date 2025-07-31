@@ -13,11 +13,13 @@ import hashlib
 import json
 import subprocess
 from ConfigManager import get_config
+from AuthManager import get_auth_manager
 import psutil
 import atexit
 
 # load configuration
 config = get_config()
+auth_manager = get_auth_manager()
 
 
 def create_systemversion_file(version):
@@ -104,11 +106,7 @@ class ChocolatLogin:
 
     def verify_credentials(self, username, password):
         """verify credentials"""
-        expected_username = "sokinox"
-        expected_password_hash = self.hash_password("sokinox25")
-        input_password_hash = self.hash_password(password)
-
-        return username == expected_username and input_password_hash == expected_password_hash
+        return auth_manager.verify_credentials(username, password)
 
     def create_login_interface(self):
         """create login interface"""
