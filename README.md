@@ -8,7 +8,7 @@ Le **Sokinox Simulator** est un simulateur de respirateur médical développé p
 
 - 🔧 **Deux modes d'utilisation** : Standard (simplifié) et Expert (avancé)
 - 📊 **Multi-versions** : Support des versions v1.6.2, v1.6.3 et v2.0.1
-- 🔐 **Système d'authentification** : Login unique (sokinox/sokinox25)
+- 🔐 **Système d'authentification** : Login initial par défaut(sokinox/sokinox25)
 - 🌬️ **Profils de débit** : Simulation de différents types de patients (Adulte, Enfant, Nouveau-né)
 - ⚙️ **Configuration avancée** : Gestion des bouteilles de gaz, analyseurs, capteurs de débit
 - 🔄 **System Field Mapping** : Conversion automatique entre modes Standard et Expert
@@ -45,6 +45,8 @@ sokinox/
             ├── standard_field_mapping.json # Mapping Standard ↔ Expert
             ├── default_template-v1.dat     # Template v1.6.2/v1.6.3
             ├── default_template-v2.dat     # Template v2.0.1
+            ├── AuthManager.py         # Authentification Manager
+            ├── change_password.bat    # Script pour mettre à jour le mot de passe
             └── choco_env.bat          # Variables d'environnement
 ```
 
@@ -75,8 +77,43 @@ sokinox/
 
 ### Authentification
 
+Le système d'authentification utilise un mécanisme sécurisé avec hashage SHA-256 et salt.
+
+#### Identifiants par défaut
 - **Login** : `sokinox`
 - **Mot de passe** : `sokinox25`
+
+#### Changement de mot de passe
+Pour changer le mot de passe système, plusieurs méthodes sont disponibles :
+
+**Méthode 1 : Script batch (recommandé)**
+```batch
+# Utiliser le script fourni
+change_password.bat nouveau_mot_de_passe_2025
+
+# Exemple
+change_password.bat sokinox2026
+```
+
+**Méthode 2 : Script Python direct**
+```bash
+# Depuis le répertoire scripts/
+python AuthManager.py "nouveau_mot_de_passe"
+```
+
+**Méthode 3 : Interface Python**
+```python
+from AuthManager import get_auth_manager
+
+auth = get_auth_manager()
+success = auth.change_password_from_file("nouveau_mot_de_passe")
+```
+
+#### Sécurité
+- Les mots de passe sont **hashés avec SHA-256 + salt** 
+- Le fichier de configuration est stocké dans `%LOCALAPPDATA%\Sokinox\auth.json`
+- Le mot de passe en clair n'est jamais stocké sur le système
+- Le changement de mot de passe est effectif au prochain démarrage
 
 ### Modes disponibles
 
