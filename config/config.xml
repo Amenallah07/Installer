@@ -2,7 +2,7 @@
 <Installer>
     <Name>Sokinox</Name>
     <Version>1.0.0</Version>
-    <Title>Sokinox Simulator Installer</Title>
+    <Title>Assistant d'installation du Simulateur Sokinox</Title>
     <Publisher>InoSystemes</Publisher>
     <StartMenuDir>sokinox</StartMenuDir>
     <TargetDir>@ApplicationsDirX86@/Sokinox</TargetDir>
@@ -14,5 +14,5 @@
     <InstallerApplicationIcon>icon.ico</InstallerApplicationIcon>
     <Logo>logo.png</Logo>
     <RunProgram>"@TargetDir@/chocolat.bat"</RunProgram>
-    <RunProgramDescription>Launch Sokinox Simulator</RunProgramDescription>
+    <RunProgramDescription>Lancer le Simulateur Sokinox</RunProgramDescription>
 </Installer>
